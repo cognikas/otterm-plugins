@@ -8,7 +8,8 @@ before using it. New versions reach every Otterm that has the plugin, without a 
 
 1. Put it in `plugins/<id>/`: `otterm-plugin.json`, its `main.js` and any styles. The id is lower-case letters,
    digits and dashes, and matches the folder.
-2. Check it here first: `npm ci` once, then `npm run check` (ESLint with the rules below, and every manifest).
+2. Check it here first: `npm ci` once, then `npm run check`: ESLint with the rules below, the types, and every
+   manifest against its schema.
 3. A new version needs a higher `version` in `otterm-plugin.json`.
 4. Open a pull request. A maintainer reviews it, looking hardest at what its `permissions` allow (typing into
    terminals, reading their screens, reading Claude's conversations), and merges it.
@@ -20,9 +21,23 @@ Otterm's **New plugin…** (Settings → Extensions) makes a plugin from a templ
 ## What a plugin is written in
 
 Plain JavaScript modules: Otterm loads the files here as they are, so there is no build step, and a plugin imports
-nothing (no packages, so no npm or pnpm either): everything comes through `otterm`. For types, the template's
-JSDoc points at Otterm's plugin API, so an editor checks it like TypeScript. A plugin written in TypeScript is
-welcome too: commit the JavaScript it compiles to, which is what Otterm runs and what is reviewed.
+nothing (no packages, so no npm or pnpm either): everything comes through `otterm`. A plugin written in
+TypeScript is welcome too: commit the JavaScript it compiles to, which is what Otterm runs and what is reviewed.
+
+## Types
+
+`types/otterm-plugin.d.ts` is the plugin API, version 1: what Otterm promises plugins, with every member
+commented. Otterm's build checks its own code against it, and the `catalog` workflow type-checks every plugin
+against it (TypeScript, strict, on the JavaScript), reading `import('otterm-plugin')` in JSDoc as this file:
+
+```js
+/** @param {import('otterm-plugin').Otterm} otterm */
+export function activate(otterm) { … }
+```
+
+`types/otterm-plugin.schema.json` is `otterm-plugin.json`'s schema; a manifest names it in `$schema` for editors.
+Both come from Otterm (its plugin kit, which New plugin… copies into a plugin's folder) and change here when a new
+Otterm adds to the API. They may become an npm package once the API has settled.
 
 ## Rules for plugins
 

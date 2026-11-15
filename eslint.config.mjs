@@ -19,13 +19,15 @@ export default [
     files: ['plugins/**/*.js', 'plugins/**/*.mjs'],
     ...js.configs.recommended,
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: globals.browser },
-    linterOptions: { reportUnusedDisableDirectives: 'error' },
+    // No eslint-disable comments in a plugin: the rules are the same for every one.
+    linterOptions: { noInlineConfig: true },
     rules: {
       ...js.configs.recommended.rules,
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-new-func': 'error',
       'no-script-url': 'error',
+      'no-warning-comments': ['error', { terms: ['@ts-nocheck', '@ts-ignore', '@ts-expect-error'], location: 'anywhere' }],
       'no-restricted-globals': [
         'error',
         ...['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'Worker', 'SharedWorker', 'importScripts'].map((name) => ({ name, message: THROUGH_OTTERM })),

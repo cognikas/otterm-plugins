@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": [],
+    "paths": { "otterm-plugin": ["./types/otterm-plugin.d.ts"] }
+  },
+  "include": ["plugins/**/*.js", "plugins/**/*.mjs", "types/otterm-plugin.d.ts"]
+}

@@ -3,16 +3,16 @@ name: catalog
 on:
   push:
     branches: [main]
-    paths: ['plugins/**', 'tools/**', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
+    paths: ['plugins/**', 'tools/**', 'types/**', 'tsconfig.json', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
   pull_request:
-    paths: ['plugins/**', 'tools/**', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
+    paths: ['plugins/**', 'tools/**', 'types/**', 'tsconfig.json', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
 
 permissions:
   contents: read
 
 jobs:
-  # A pull request, checked with main's rules (a pull request can't loosen the rules it is checked by): ESLint on
-  # every plugin, every manifest, a higher version for a changed plugin, and catalog.json left alone.
+  # A pull request, checked with main's rules (a pull request can't loosen the rules it is checked by): ESLint and
+  # the types on every plugin, every manifest, a higher version for a changed plugin, and catalog.json left alone.
   check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -29,9 +29,10 @@ jobs:
             exit 1
           fi
       - name: main's rules
-        run: git checkout origin/main -- tools eslint.config.mjs package.json package-lock.json
+        run: git checkout origin/main -- tools types tsconfig.json eslint.config.mjs package.json package-lock.json
       - run: npm ci --ignore-scripts
       - run: npx eslint --no-error-on-unmatched-pattern plugins
+      - run: npx tsc -p tsconfig.json
       - run: node tools/build-catalog.mjs --check
 
   # main: lint again, write catalog.json for the last commit that changed plugins/, and commit it when it changed.
@@ -53,6 +54,7 @@ jobs:
           node-version: 22
       - run: npm ci --ignore-scripts
       - run: npx eslint .
+      - run: npx tsc -p tsconfig.json
       - run: |
           at=$(git log -1 --format=%H -- plugins)
           node tools/build-catalog.mjs --commit "${at:-$(git rev-parse HEAD)}"

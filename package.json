@@ -4,11 +4,14 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "check": "eslint . && node tools/build-catalog.mjs --check"
+    "types": "tsc -p tsconfig.json",
+    "check": "eslint . && tsc -p tsconfig.json && node tools/build-catalog.mjs --check"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "ajv": "8.20.0",
     "eslint": "10.15.0",
-    "globals": "17.14.0"
+    "globals": "17.14.0",
+    "typescript": "7.0.2"
   }
 }

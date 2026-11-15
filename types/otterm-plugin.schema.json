@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "title": "Otterm plugin manifest (otterm-plugin.json), plugin API 1",
+  "type": "object",
+  "required": ["id", "name", "version", "api", "main"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "description": "Lower-case letters, digits and dashes; the plugin's folder has the same name.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+    },
+    "name": { "description": "As Settings → Extensions shows it.", "type": "string", "minLength": 1, "maxLength": 60, "pattern": "\\S" },
+    "version": { "description": "major.minor.patch; higher for each release.", "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "description": { "description": "What it does, in a sentence.", "type": "string", "maxLength": 300 },
+    "author": { "type": "string", "maxLength": 80 },
+    "api": { "description": "The plugin API it was written for.", "type": "integer", "minimum": 1 },
+    "main": { "description": "Its ES module, in its folder.", "type": "string", "pattern": "^(?!.*\\.\\.)[\\w./-]+\\.m?js$" },
+    "styles": {
+      "description": "Its stylesheets, in its folder.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^(?!.*\\.\\.)[\\w./-]+\\.css$" }
+    },
+    "where": {
+      "description": "Where it loads: the window on the PC, the page a paired phone or laptop opens, or both (when left out).",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["window", "remote"] }
+    },
+    "permissions": {
+      "description": "Only what it needs. type: type into terminals. screen: read a terminal's screen. chat: read a Claude terminal's conversation.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["type", "screen", "chat"] }
+    },
+    "settings": {
+      "description": "What the user can set, in Settings → Extensions.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/setting" }
+    }
+  },
+  "$defs": {
+    "setting": {
+      "type": "object",
+      "required": ["key", "type", "label", "default"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^\\w{1,40}$" },
+        "type": { "enum": ["boolean", "choice", "number", "text"] },
+        "label": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "help": { "type": "string" },
+        "default": {},
+        "choices": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["value", "label"],
+            "additionalProperties": false,
+            "properties": { "value": { "type": "string" }, "label": { "type": "string" } }
+          }
+        },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "boolean" } } }, "then": { "properties": { "default": { "type": "boolean" } } } },
+        { "if": { "properties": { "type": { "const": "choice" } } }, "then": { "required": ["choices"], "properties": { "default": { "type": "string" } } } },
+        { "if": { "properties": { "type": { "const": "number" } } }, "then": { "properties": { "default": { "type": ["number", "null"] } } } },
+        { "if": { "properties": { "type": { "const": "text" } } }, "then": { "properties": { "default": { "type": "string" } } } }
+      ]
+    }
+  }
+}

@@ -3,12 +3,16 @@
 //
 //   node tools/build-catalog.mjs --commit <sha>   write catalog.json for that commit (the workflow, on main)
 //   node tools/build-catalog.mjs --check          check every plugin, and that a changed one has a higher version
+//
+// Each otterm-plugin.json is checked against types/otterm-plugin.schema.json (the schema Otterm's plugin kit has too)
+// and the rules below, which match how Otterm reads a manifest.
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import Ajv2020 from 'ajv/dist/2020.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REPO = 'https://raw.githubusercontent.com/cognikas/otterm-plugins';
@@ -24,6 +28,8 @@ const checking = args.includes('--check');
 if (!checking && !/^[0-9a-f]{40}$/.test(commit ?? '')) throw new Error('--commit <40-character sha>, or --check');
 
 const problems = [];
+const schema = JSON.parse(fs.readFileSync(path.join(root, 'types', 'otterm-plugin.schema.json'), 'utf8'));
+const fitsSchema = new Ajv2020({ allErrors: true, strict: false }).compile(schema);
 const semver = (v) => (/^\d+\.\d+\.\d+$/.test(v) ? v.split('.').map(Number) : null);
 const newer = (a, b) => {
   const [x, y] = [semver(a), semver(b)];
@@ -52,6 +58,7 @@ for (const id of fs.existsSync(dir) ? fs.readdirSync(dir).sort() : []) {
     bad('otterm-plugin.json is missing or not JSON');
     continue;
   }
+  if (!fitsSchema(m)) for (const e of fitsSchema.errors ?? []) bad(`otterm-plugin.json${e.instancePath || ''} ${e.message}${e.params?.additionalProperty ? `: ${e.params.additionalProperty}` : ''}`);
   if (!ID.test(id) || m.id !== id) bad('its id must be its folder’s name: lower-case letters, digits and dashes');
   if (typeof m.name !== 'string' || !m.name.trim() || m.name.length > 60) bad('it needs a name of up to 60 characters');
   if (!semver(m.version)) bad('its version must look like 1.0.0');
@@ -72,7 +79,9 @@ for (const id of fs.existsSync(dir) ? fs.readdirSync(dir).sort() : []) {
     entries.push({ path: f, sha256: createHash('sha256').update(body).digest('hex'), size: body.length });
   }
   if (total > MAX_PLUGIN) bad('the plugin is over 10 MB');
-  plugins.push({ ...m, base: `${REPO}/${commit ?? '0'.repeat(40)}/plugins/${id}/`, files: entries });
+  const manifest = { ...m };
+  delete manifest.$schema;
+  plugins.push({ ...manifest, base: `${REPO}/${commit ?? '0'.repeat(40)}/plugins/${id}/`, files: entries });
 }
 
 if (checking) {
