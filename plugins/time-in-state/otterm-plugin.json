@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
   "id": "time-in-state",
   "name": "Time in state",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shows how long each terminal has been waiting on you or working, in its sidebar row and pane header.",
   "author": "Otterm",
   "api": 1,
