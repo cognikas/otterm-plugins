@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "time-in-state",
+  "name": "Time in state",
+  "version": "1.0.0",
+  "description": "Shows how long each terminal has been waiting on you or working, in its sidebar row and pane header.",
+  "author": "Otterm",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "permissions": [],
+  "settings": [
+    {
+      "key": "which",
+      "type": "choice",
+      "label": "Show the time for",
+      "default": "busy",
+      "choices": [
+        { "value": "waiting", "label": "Terminals waiting on you" },
+        { "value": "busy", "label": "Terminals waiting on you or working" },
+        { "value": "all", "label": "Every running terminal" }
+      ]
+    },
+    {
+      "key": "where",
+      "type": "choice",
+      "label": "Show it in",
+      "default": "both",
+      "choices": [
+        { "value": "both", "label": "Sidebar rows and pane headers" },
+        { "value": "rows", "label": "Sidebar rows" },
+        { "value": "headers", "label": "Pane headers" }
+      ]
+    },
+    {
+      "key": "longAfter",
+      "type": "number",
+      "label": "Mark a wait as long after",
+      "default": 10,
+      "min": 1,
+      "max": 600,
+      "unit": "min",
+      "help": "A terminal waiting on you this long shows its time in orange. Empty for never."
+    }
+  ]
+}
