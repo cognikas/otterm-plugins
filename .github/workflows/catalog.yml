@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths: ['plugins/**', 'tools/**', 'types/**', 'tsconfig.json', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
+  # Every pull request: main requires this check, so it must run even when only the README changes.
   pull_request:
-    paths: ['plugins/**', 'tools/**', 'types/**', 'tsconfig.json', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
 
 permissions:
   contents: read
