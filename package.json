@@ -1,0 +1,14 @@
+{
+  "name": "otterm-plugins",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "check": "eslint . && node tools/build-catalog.mjs --check"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.15.0",
+    "globals": "17.14.0"
+  }
+}

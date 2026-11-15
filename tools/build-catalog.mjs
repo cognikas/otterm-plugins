@@ -80,7 +80,9 @@ if (checking) {
   let before = { plugins: [] };
   try {
     before = JSON.parse(execFileSync('git', ['show', 'origin/main:catalog.json'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
-  } catch {}
+  } catch {
+    // No catalog.json on main yet: every plugin is new.
+  }
   for (const p of plugins) {
     const was = before.plugins.find((x) => x.id === p.id);
     if (!was) continue;
