@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "commit": "61f359163e088a1171ae0e7a6cdaad2e4262a2b0",
+  "commit": "9e432f452e970950696cb4ec7b00ff7169c364ab",
   "plugins": [
     {
       "id": "time-in-state",
       "name": "Time in state",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "Shows how long each terminal has been waiting on you or working, in its sidebar row and pane header.",
       "author": "Otterm",
       "api": 1,
@@ -70,7 +70,7 @@
           "help": "A terminal waiting on you this long shows its time in orange. Empty for never."
         }
       ],
-      "base": "https://raw.githubusercontent.com/cognikas/otterm-plugins/61f359163e088a1171ae0e7a6cdaad2e4262a2b0/plugins/time-in-state/",
+      "base": "https://raw.githubusercontent.com/cognikas/otterm-plugins/9e432f452e970950696cb4ec7b00ff7169c364ab/plugins/time-in-state/",
       "files": [
         {
           "path": "README.md",
@@ -79,12 +79,12 @@
         },
         {
           "path": "main.js",
-          "sha256": "390e4fe72a6fb19435768b5938624e0569fa7822c74fc503e7f54cb22254907b",
-          "size": 3239
+          "sha256": "25e0daa086b432d56b8560c9c800049290704a2fb8171f0c6d0e3661e37fb9c7",
+          "size": 3360
         },
         {
           "path": "otterm-plugin.json",
-          "sha256": "ada931bab3f41308a4efbaf7398b2f7d26f00e5aba7e7a5c2b1d3ad1c6a8b2a3",
+          "sha256": "2fc209c9caf096875e7562c778078cebc82906b6a61f9b15befdf879e62491d6",
           "size": 1420
         },
         {
