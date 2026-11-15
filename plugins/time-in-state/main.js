@@ -45,7 +45,8 @@ export function activate(otterm) {
     const longAfter = otterm.config.get('longAfter');
     el.textContent = howLong(ms);
     el.classList.toggle('time-in-state-long', waiting && typeof longAfter === 'number' && longAfter > 0 && ms >= longAfter * 60_000);
-    el.title = `${waiting ? 'Waiting on you' : 'In this state'} for ${howLong(ms)}`;
+    const since = new Date(t.stateSince).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    el.title = `${waiting ? 'Waiting on you' : 'In this state'} for ${howLong(ms)}, since ${since}`;
   };
 
   /**
