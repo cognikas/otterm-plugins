@@ -1,0 +1,18 @@
+/* Time in state: a small figure beside the terminal's state. Otterm's colors, so it follows the theme. */
+.time-in-state {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.time-in-state-waiting {
+  color: var(--text);
+}
+
+/* Waiting on you longer than the setting says. */
+.time-in-state-long {
+  color: var(--need);
+  font-weight: 600;
+}

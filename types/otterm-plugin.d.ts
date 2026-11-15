@@ -23,12 +23,13 @@ export type TerminalState =
   /** The agent asks for a permission. */
   | 'approval'
   | 'your-turn'
-  /** A shell running a command. */
+  /** A plain shell (no agent), open: Otterm shows it as Running, and idle. */
   | 'running'
   /** The agent ended; the shell is still there. */
   | 'ended'
   /** The shell exited. */
   | 'exited'
+  /** Stopped in Otterm (Not running). */
   | 'stopped';
 
 /** The optional parts of a pane's header; a part left out shows. */
@@ -223,16 +224,16 @@ export interface Otterm {
     /** What Otterm shows on hover: context, tokens so far, cost, version. */
     tip: string;
   };
-  /** Numbers as Otterm writes them. */
+  /** Numbers as Otterm writes them. Each works on its own too: const { percent } = otterm.format. */
   format: {
     /** 42% */
-    percent(n: number | null): string;
+    percent: (n: number | null) => string;
     /** $0.125, $3.20; '' for nothing */
-    money(usd: number | null): string;
+    money: (usd: number | null) => string;
     /** 840, 84k, 1.2M */
-    tokens(n: number): string;
+    tokens: (n: number) => string;
     /** A folder shortened to its last two parts: …\work\otterm */
-    shortPath(p: string): string;
+    shortPath: (p: string) => string;
   };
 
   /** This plugin's settings, from its manifest: the value set in Settings, or its default. */
@@ -265,8 +266,11 @@ export interface Otterm {
     redraw(): void;
     /** A short message at the bottom of the page. */
     toast(text: string): void;
-    /** An element: h('span', { class: 'x', title: 'y', onclick }, 'text', child). Text is always text, never HTML. */
-    h(tag: string, attrs?: Record<string, unknown> | null, ...kids: Kid[]): HTMLElement;
+    /**
+     * An element: h('span', { class: 'x', title: 'y', onclick }, 'text', child). Text is always text, never HTML.
+     * It works on its own too: const h = otterm.ui.h.
+     */
+    h: (tag: string, attrs?: Record<string, unknown> | null, ...kids: Kid[]) => HTMLElement;
     /** Markdown made into elements, as the chat view shows Claude's replies. */
     markdown(src: string): DocumentFragment;
     /** The terminal's state as Otterm shows it in the sidebar: a dot, or the face of a stopped one. */
