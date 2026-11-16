@@ -1,0 +1,43 @@
+/* Auto-compact: the countdown, in the pane header and (shorter) in the sidebar row, with its Cancel. */
+.ac-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 3px 1px 8px;
+  border: 1px solid var(--need);
+  border-radius: 999px;
+  color: var(--need);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ac-cancel {
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--need);
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.ac-cancel:hover {
+  filter: brightness(1.15);
+}
+
+.ac-count.ac-short {
+  gap: 4px;
+  padding: 0 2px 0 6px;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.ac-short .ac-cancel {
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 14px;
+}
