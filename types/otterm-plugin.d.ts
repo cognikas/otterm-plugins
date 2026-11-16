@@ -283,6 +283,13 @@ export interface Otterm {
   type(id: string, text: string): void;
   /** Sends keys to a terminal as they are (arrows, Enter, Esc). Needs "type". */
   keys(id: string, data: string): void;
+  /**
+   * Sends a slash command, such as /compact, to a Claude terminal the safe way: only while Claude waits at its prompt
+   * (ready or your turn) with an empty input box, and Enter only once the box shows exactly that command. Otherwise it
+   * rejects with the reason ("Claude is busy…", "Not sent: its input box has text you haven't sent…"), and nothing is
+   * typed or queued. One line: a "/", the command's name, and what it takes. Needs "type".
+   */
+  command(id: string, text: string): Promise<void>;
   /** The bottom of a terminal's screen: its last lines (as many as it is tall by default, up to 200). Needs "screen". */
   screen(id: string, lines?: number): string[];
   /** Calls fn a moment after new output for a terminal is drawn on this page; the function returned stops it. Needs "screen". */
