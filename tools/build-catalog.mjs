@@ -1,8 +1,10 @@
 // Writes catalog.json from plugins/: each plugin's manifest, where its files are at this commit, and each file's
 // SHA-256 and size. Otterm checks every file against it before using a plugin.
 //
-//   node tools/build-catalog.mjs --commit <sha>   write catalog.json for that commit (the workflow, on main)
-//   node tools/build-catalog.mjs --check          check every plugin, and that a changed one has a higher version
+//   node tools/build-catalog.mjs --commit <sha> [--out <file>]
+//       write catalog.json for that commit (the workflow on main writes it into the GitHub Pages site, _site/)
+//   node tools/build-catalog.mjs --check
+//       check every plugin, and that one whose files changed against origin/main has a higher version
 //
 // Each otterm-plugin.json is checked against types/otterm-plugin.schema.json (the schema Otterm's plugin kit has too)
 // and the rules below, which match how Otterm reads a manifest.
@@ -25,6 +27,7 @@ const MAX_PLUGIN = 10 * 1024 * 1024;
 const args = process.argv.slice(2);
 const commit = args.includes('--commit') ? args[args.indexOf('--commit') + 1] : null;
 const checking = args.includes('--check');
+const out = path.resolve(root, args.includes('--out') ? args[args.indexOf('--out') + 1] : 'catalog.json');
 if (!checking && !/^[0-9a-f]{40}$/.test(commit ?? '')) throw new Error('--commit <40-character sha>, or --check');
 
 const problems = [];
@@ -85,18 +88,22 @@ for (const id of fs.existsSync(dir) ? fs.readdirSync(dir).sort() : []) {
 }
 
 if (checking) {
-  // A plugin whose files changed against main needs a higher version than main's catalog says.
-  let before = { plugins: [] };
-  try {
-    before = JSON.parse(execFileSync('git', ['show', 'origin/main:catalog.json'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
-  } catch {
-    // No catalog.json on main yet: every plugin is new.
-  }
+  // A plugin whose files changed against main needs a higher version than main has.
+  const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   for (const p of plugins) {
-    const was = before.plugins.find((x) => x.id === p.id);
-    if (!was) continue;
-    const same = JSON.stringify(was.files.map((f) => [f.path, f.sha256])) === JSON.stringify(p.files.map((f) => [f.path, f.sha256]));
-    if (!same && !newer(p.version, was.version)) problems.push(`${p.id}: its files changed, so its version must go up from ${was.version}`);
+    let was;
+    try {
+      was = JSON.parse(git('show', `origin/main:plugins/${p.id}/otterm-plugin.json`)).version;
+    } catch {
+      continue; // new here
+    }
+    let changed = false;
+    try {
+      git('diff', '--quiet', 'origin/main', '--', `plugins/${p.id}`);
+    } catch {
+      changed = true;
+    }
+    if (changed && !newer(p.version, was)) problems.push(`${p.id}: its files changed, so its version must go up from ${was}`);
   }
 }
 
@@ -105,6 +112,7 @@ if (problems.length) {
   process.exit(1);
 }
 if (!checking) {
-  fs.writeFileSync(path.join(root, 'catalog.json'), `${JSON.stringify({ version: 1, commit, plugins }, null, 2)}\n`);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(out, `${JSON.stringify({ version: 1, commit, plugins }, null, 2)}\n`);
 }
-console.log(`${plugins.length} plugin${plugins.length === 1 ? '' : 's'}${checking ? ' checked' : ` in catalog.json for ${commit.slice(0, 7)}`}`);
+console.log(`${plugins.length} plugin${plugins.length === 1 ? '' : 's'}${checking ? ' checked' : ` in ${path.relative(root, out)} for ${commit.slice(0, 7)}`}`);

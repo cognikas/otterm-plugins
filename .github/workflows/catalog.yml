@@ -3,16 +3,18 @@ name: catalog
 on:
   push:
     branches: [main]
-    paths: ['plugins/**', 'tools/**', 'types/**', 'tsconfig.json', 'catalog.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
+    paths: ['plugins/**', 'tools/**', 'types/**', 'tsconfig.json', 'eslint.config.mjs', 'package.json', 'package-lock.json', '.github/workflows/catalog.yml']
   # Every pull request: main requires this check, so it must run even when only the README changes.
   pull_request:
+  # Publish the catalog again by hand (Actions → catalog → Run workflow), from main only.
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   # A pull request, checked with main's rules (a pull request can't loosen the rules it is checked by): ESLint and
-  # the types on every plugin, every manifest, a higher version for a changed plugin, and catalog.json left alone.
+  # the types on every plugin, every manifest, and a higher version for a changed plugin.
   check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -22,12 +24,6 @@ jobs:
         with:
           node-version: 22
       - run: git fetch --depth=1 origin main:refs/remotes/origin/main
-      - name: catalog.json is written on merge
-        run: |
-          if ! git diff --quiet origin/main -- catalog.json; then
-            echo "::error::catalog.json is written on merge; leave it out of the pull request"
-            exit 1
-          fi
       - name: main's rules
         run: git checkout origin/main -- tools types tsconfig.json eslint.config.mjs package.json package-lock.json
       - run: npm ci --ignore-scripts
@@ -35,19 +31,25 @@ jobs:
       - run: npx tsc -p tsconfig.json
       - run: node tools/build-catalog.mjs --check
 
-  # main: lint again, write catalog.json for the last commit that changed plugins/, and commit it when it changed.
+  # main: lint and type-check again, write catalog.json for the last commit that changed plugins/, and publish it on
+  # GitHub Pages (https://cognikas.github.io/otterm-plugins/catalog.json). Only main may publish there (the
+  # github-pages environment's rule), and nothing is committed, so main stays protected with no exceptions.
   publish:
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}catalog.json
     concurrency:
       group: catalog
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -57,11 +59,9 @@ jobs:
       - run: npx tsc -p tsconfig.json
       - run: |
           at=$(git log -1 --format=%H -- plugins)
-          node tools/build-catalog.mjs --commit "${at:-$(git rev-parse HEAD)}"
-      - run: |
-          git config user.name "otterm-catalog"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add catalog.json
-          if git diff --cached --quiet; then echo "catalog.json unchanged"; exit 0; fi
-          git commit -m "catalog.json for $(git rev-parse --short HEAD) [skip ci]"
-          git push
+          node tools/build-catalog.mjs --commit "${at:-$(git rev-parse HEAD)}" --out _site/catalog.json
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

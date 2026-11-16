@@ -1,7 +1,8 @@
 # Otterm plugins
 
 The catalog of reviewed plugins for [Otterm](https://github.com/cognikas/otterm-installers). Otterm reads
-`catalog.json` from here, downloads a plugin's files from the commit it names, and checks each file's SHA-256
+[`catalog.json`](https://cognikas.github.io/otterm-plugins/catalog.json), which this repo's workflow publishes on
+GitHub Pages from `main`, downloads a plugin's files from the commit it names, and checks each file's SHA-256
 before using it. New versions reach every Otterm that has the plugin, without a restart.
 
 ## Adding or updating a plugin
@@ -13,7 +14,9 @@ before using it. New versions reach every Otterm that has the plugin, without a 
 3. A new version needs a higher `version` in `otterm-plugin.json`.
 4. Open a pull request. A maintainer reviews it, looking hardest at what its `permissions` allow (typing into
    terminals, reading their screens, reading Claude's conversations), and merges it.
-5. The pull request is checked with main's rules. On merge, the `catalog` workflow checks every plugin and writes `catalog.json`.
+5. The pull request is checked with main's rules, and `main` takes nothing else: no direct pushes, and a code
+   owner's review. On merge, the `catalog` workflow checks every plugin again and publishes `catalog.json` on GitHub
+   Pages, which only `main` can do.
 
 Otterm's **New plugin…** (Settings → Extensions) makes a plugin from a template with a Claude terminal, and
 **Publish…** opens the pull request here.
