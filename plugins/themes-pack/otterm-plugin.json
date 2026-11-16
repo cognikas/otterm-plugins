@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "themes-pack",
+  "name": "Themes pack",
+  "version": "1.0.0",
+  "description": "Three more themes for the page and the terminals: high contrast, warm dark and soft light.",
+  "author": "Otterm",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "settings": [
+    {
+      "key": "theme",
+      "type": "choice",
+      "label": "Theme",
+      "default": "contrast",
+      "choices": [
+        { "value": "contrast", "label": "High contrast" },
+        { "value": "warm", "label": "Warm dark" },
+        { "value": "soft", "label": "Soft light" }
+      ],
+      "help": "It shows instead of Look's theme while this plugin is on. With Soft light, set Claude Code's own theme to a light one with /config."
+    }
+  ]
+}
