@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "spend",
+  "name": "Spend",
+  "version": "1.0.0",
+  "description": "A chip in the top bar with what your terminals have cost in this 5-hour window, at list price; a click shows each one's share.",
+  "author": "Otterm",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "settings": [
+    {
+      "key": "show",
+      "type": "choice",
+      "label": "What it adds up",
+      "default": "window",
+      "choices": [
+        { "value": "window", "label": "This 5-hour window" },
+        { "value": "sessions", "label": "The open sessions so far" }
+      ],
+      "help": "The window counts across /clear and restarts, and starts again at $0 with the next window. A session's cost goes back to $0 after /clear."
+    }
+  ]
+}
