@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "auto-compact",
+  "name": "Auto-compact",
+  "version": "1.0.0",
+  "description": "Sends /compact by itself to a Claude that waits at its prompt with its context past a mark, after a countdown you can cancel.",
+  "author": "Otterm",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window"],
+  "permissions": ["type"],
+  "settings": [
+    {
+      "key": "at",
+      "type": "choice",
+      "label": "Compact when the context is past",
+      "default": "80",
+      "choices": [
+        { "value": "warning", "label": "The context warning (Settings → Display)" },
+        { "value": "60", "label": "60%" },
+        { "value": "70", "label": "70%" },
+        { "value": "80", "label": "80%" },
+        { "value": "90", "label": "90%" }
+      ],
+      "help": "Only while Claude waits at its prompt, between turns. With the context warning off, the first choice never compacts."
+    },
+    {
+      "key": "seconds",
+      "type": "number",
+      "label": "Countdown",
+      "default": 10,
+      "min": 3,
+      "max": 120,
+      "unit": "seconds",
+      "help": "How long it waits, showing a Cancel in the pane header and the sidebar row, before it sends /compact."
+    }
+  ]
+}
