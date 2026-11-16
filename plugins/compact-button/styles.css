@@ -1,0 +1,49 @@
+/* Compact: a small pill in the pane header, its border and text colored by how full the context is. */
+.compact-button {
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.compact-button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.compact-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.compact-green {
+  border-color: var(--work);
+  color: var(--work);
+}
+
+.compact-yellow {
+  border-color: var(--turn);
+  color: var(--turn);
+}
+
+.compact-orange {
+  border-color: var(--need);
+  color: var(--need);
+}
+
+.compact-red {
+  border-color: var(--hot);
+  color: var(--hot);
+}
+
+/* Waiting for the second click. */
+.compact-button.compact-armed {
+  border-color: var(--need);
+  background: var(--need);
+  color: #fff;
+}
