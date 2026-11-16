@@ -1,0 +1,100 @@
+/*
+ * Themes pack: the page's colors for each theme, as Otterm's own color tokens. html:root[…] outranks the rules of
+ * Otterm and of Look's light theme, so the theme picked here shows whatever Look is set to.
+ */
+
+/* High contrast: white on black, with strong status colors. */
+html:root[data-otterm-theme='contrast'] {
+  --bg: #000000;
+  --panel: #0a0a0a;
+  --term-bg: #000000;
+  --line: #5c5c5c;
+  --line-strong: #8c8c8c;
+  --text: #ffffff;
+  --muted: #cfcfcf;
+  --accent: #3ee8d4;
+  --neutral: #a6a6a6;
+  --work: #3ddc6b;
+  --need: #ff9a3c;
+  --turn: #ffd23f;
+  --off: #7a7a7a;
+  --hot: #ff5c5c;
+  --warm: #ffd23f;
+  --cool: #8ef0de;
+  --usage: #ff9a3c;
+  --hover: #1c1c1c;
+  --selected: #2b2b2b;
+  --raised: #141414;
+  --menu-hover: #303030;
+  --input: #000000;
+  --pressed: #3b3b3b;
+  --border-hover: #b5b5b5;
+  --shadow: #000c;
+  --overlay: #000a;
+  --banner: #3a2e00;
+  color-scheme: dark;
+}
+
+/* Warm dark: cream on dark brown, with an amber accent. */
+html:root[data-otterm-theme='warm'] {
+  --bg: #1b1714;
+  --panel: #221d19;
+  --term-bg: #161210;
+  --line: #3a322b;
+  --line-strong: #4d433a;
+  --text: #ece3d6;
+  --muted: #a3968a;
+  --accent: #e8a35c;
+  --neutral: #857868;
+  --work: #8fbf5a;
+  --need: #f0864a;
+  --turn: #e6c05c;
+  --off: #5a5048;
+  --hot: #e5584f;
+  --warm: #e6c05c;
+  --cool: #9cc7b4;
+  --usage: #f0864a;
+  --hover: #2a241f;
+  --selected: #312a24;
+  --raised: #26201b;
+  --menu-hover: #352d26;
+  --input: #14100e;
+  --pressed: #3b332b;
+  --border-hover: #6b5f53;
+  --shadow: #000a;
+  --overlay: #0008;
+  --banner: #33280f;
+  color-scheme: dark;
+}
+
+/* Soft light: dark gray on warm paper, gentler than Look's light. */
+html:root[data-otterm-theme='soft'] {
+  --bg: #f3efe7;
+  --panel: #faf7f1;
+  --term-bg: #fbf8f2;
+  --line: #ddd6ca;
+  --line-strong: #c4bcae;
+  --text: #2d2a26;
+  --muted: #6f685e;
+  --accent: #1f7a72;
+  --neutral: #857d71;
+  --work: #3d7a2e;
+  --need: #b8541c;
+  --turn: #9a7413;
+  --off: #a39b8f;
+  --hot: #c0392b;
+  --warm: #9a7413;
+  --cool: #2f7a6e;
+  --usage: #b8541c;
+  --hover: #ebe5da;
+  --selected: #e3dccf;
+  --raised: #fffdf9;
+  --menu-hover: #e8e1d5;
+  --input: #fffdf9;
+  --pressed: #d9d1c3;
+  --border-hover: #a39b8f;
+  --shadow: #0002;
+  --overlay: #0003;
+  --banner: #f6e7c1;
+  color-scheme: light;
+}
