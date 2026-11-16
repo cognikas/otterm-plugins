@@ -51,3 +51,9 @@ Otterm adds to the API. They may become an npm package once the API has settled.
   `otterm.ui.h`), no script or iframe elements, no `window.open`, and data in `otterm.store`, not `localStorage`.
 - Ask only for the permissions it needs.
 - Text in the interface is plain English, short, and says what it does.
+
+## License
+
+Everything here is under the [MIT license](LICENSE): the plugins, the types and the tools. A pull request that adds or
+changes a plugin publishes it under the MIT license. Otterm's plugin API is MIT as well, so a plugin can use any
+license.

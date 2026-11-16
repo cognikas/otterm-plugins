@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// This file is under the MIT license, as are New plugin…'s template and the catalog cognikas/otterm-plugins, so a plugin
+// built on it can use any license, whatever Otterm's own is.
+//
 // The plugin API, version 1: what a plugin's activate(otterm) gets, and what Otterm promises plugins. This file is
 // the contract. It stands alone (no imports), and is shipped as it is as otterm-plugin.d.ts: in New plugin…'s kit,
 // and in cognikas/otterm-plugins, whose workflow type-checks every plugin against it. Otterm's own types must fit
