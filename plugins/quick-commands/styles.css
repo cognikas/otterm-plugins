@@ -1,0 +1,92 @@
+/* Quick commands: a small "/" button in the pane header, and its menu, which sits on the page above the panes. */
+.qc-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.qc-button:hover,
+.qc-button.qc-open {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.qc-caret {
+  font-size: 9px;
+}
+
+.qc-menu {
+  position: fixed;
+  z-index: 26;
+  min-width: 180px;
+  max-width: 320px;
+  padding: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--raised);
+  box-shadow: 0 10px 28px var(--shadow);
+  user-select: none;
+}
+
+.qc-title {
+  overflow: hidden;
+  padding: 3px 8px 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.qc-item {
+  display: block;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.qc-item:hover:not(:disabled),
+.qc-item:focus-visible {
+  background: var(--menu-hover);
+  outline: none;
+}
+
+.qc-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Waiting for the second click. */
+.qc-item.qc-armed {
+  background: var(--need);
+  color: #fff;
+}
+
+.qc-note {
+  padding: 6px 8px 2px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: normal;
+}

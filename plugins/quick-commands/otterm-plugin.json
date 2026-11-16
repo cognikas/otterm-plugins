@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "quick-commands",
+  "name": "Quick commands",
+  "version": "1.0.0",
+  "description": "A menu in each Claude terminal's pane header with the slash commands you pick, such as /compact, /clear and /context.",
+  "author": "Otterm",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "permissions": ["type"],
+  "settings": [
+    {
+      "key": "commands",
+      "type": "text",
+      "label": "Commands",
+      "default": "/compact, /clear, /context",
+      "help": "Slash commands for the menu, separated by commas, in the order they show. A command may take words after it, such as /model sonnet."
+    },
+    {
+      "key": "confirm",
+      "type": "boolean",
+      "label": "Ask for a second click before /clear and /compact",
+      "default": true,
+      "help": "They can't be undone: the first click asks, and a second click within 3 seconds sends it."
+    }
+  ]
+}
