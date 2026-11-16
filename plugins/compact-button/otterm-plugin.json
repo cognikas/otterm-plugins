@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "compact-button",
+  "name": "Compact button",
+  "version": "1.0.0",
+  "description": "A Compact button in each Claude terminal's pane header, colored by how full its context is, that sends /compact.",
+  "author": "Otterm",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "permissions": ["type"],
+  "settings": [
+    {
+      "key": "confirm",
+      "type": "boolean",
+      "label": "Ask for a second click",
+      "default": true,
+      "help": "Compacting can't be undone: the first click turns the button into Compact?, and a second click within 3 seconds sends /compact."
+    }
+  ]
+}
