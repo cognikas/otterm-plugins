@@ -1,0 +1,139 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "otter-pet",
+  "name": "Otter pet",
+  "version": "1.0.0",
+  "description": "An otter that floats over the window: drag it anywhere. It types while a terminal works, waves when one needs you, cries when one failed, sleeps when nothing works. A bubble says what Claude finished where you aren't looking; a click opens it. Right-click for its menu. One otter, or one per group.",
+  "author": "Willy Sotomayor",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "permissions": ["type"],
+  "settings": [
+    {
+      "key": "which",
+      "type": "choice",
+      "label": "Tell me about",
+      "default": "others",
+      "choices": [
+        { "value": "others", "label": "Terminals I'm not looking at" },
+        { "value": "all", "label": "Every terminal" }
+      ],
+      "help": "When Otterm isn't the window in front, every terminal counts as not looked at."
+    },
+    {
+      "key": "say",
+      "type": "choice",
+      "label": "When a terminal finishes, the bubble shows",
+      "default": "result",
+      "choices": [
+        { "value": "result", "label": "The first sentence of Claude's reply" },
+        { "value": "name", "label": "Only which terminal finished" },
+        { "value": "nothing", "label": "Nothing (the otter only smiles)" }
+      ]
+    },
+    {
+      "key": "bubbleSeconds",
+      "type": "number",
+      "label": "Keep each bubble at least",
+      "default": 8,
+      "min": 3,
+      "max": 60,
+      "unit": "s"
+    },
+    {
+      "key": "otters",
+      "type": "choice",
+      "label": "Otters",
+      "default": "one",
+      "choices": [
+        { "value": "one", "label": "One for every terminal" },
+        { "value": "group", "label": "One per group, in a raft" }
+      ],
+      "help": "With one per group, each otter wears its group's color and shows how that group is doing. Each device can pick its own in the otter's menu."
+    },
+    {
+      "key": "character",
+      "type": "choice",
+      "label": "Character",
+      "default": "otter",
+      "choices": [
+        { "value": "otter", "label": "An otter" },
+        { "value": "cat", "label": "A cat" },
+        { "value": "penguin", "label": "A penguin" },
+        { "value": "beaver", "label": "A beaver" }
+      ],
+      "help": "Every one has every pose. Each device can pick its own in the menu."
+    },
+    {
+      "key": "hats",
+      "type": "boolean",
+      "label": "Put on hats",
+      "default": true,
+      "help": "The agent's (orange for Claude, slate for Codex: the agent of the terminal the otter is showing), and a nightcap to sleep in at night."
+    },
+    {
+      "key": "size",
+      "type": "choice",
+      "label": "Size",
+      "default": "medium",
+      "choices": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "help": "Each device can pick its own in the otter's menu."
+    },
+    {
+      "key": "sleepAfter",
+      "type": "number",
+      "label": "Falls asleep when no terminal has worked for",
+      "default": 15,
+      "min": 1,
+      "max": 240,
+      "unit": "min",
+      "help": "Empty to stay awake."
+    },
+    {
+      "key": "warnHot",
+      "type": "boolean",
+      "label": "Tell me when a terminal's context is nearly full",
+      "default": true,
+      "help": "When Otterm shows its context in red, with a Compact button for Claude (it needs the type permission)."
+    },
+    {
+      "key": "planWarn",
+      "type": "number",
+      "label": "Tell me when the 5-hour limit is used up to",
+      "default": 90,
+      "min": 50,
+      "max": 100,
+      "unit": "%",
+      "help": "Once per 5-hour window. Empty for no warning."
+    },
+    {
+      "key": "breakAfter",
+      "type": "number",
+      "label": "Suggest a break after working for",
+      "default": 90,
+      "min": 15,
+      "max": 480,
+      "unit": "min",
+      "help": "Counts while you type or click in Otterm; 10 minutes away is a break. Empty for no reminder."
+    },
+    {
+      "key": "quiet",
+      "type": "text",
+      "label": "Quiet hours",
+      "default": "",
+      "help": "No bubbles between these times, such as 22:00-08:00. The otter still shows how the terminals are doing."
+    },
+    {
+      "key": "phone",
+      "type": "boolean",
+      "label": "Show it on paired phones and laptops too",
+      "default": true
+    }
+  ]
+}
