@@ -1,0 +1,160 @@
+/* Otter pet. Above the panes (z-index 5), below Otterm's dialogs (20), popovers (25) and toasts (30). */
+.otter-pet {
+  --otter-pet-size: 96px;
+  --otter-pet-fur: #8a5a3b;
+  --otter-pet-fur-dark: #6b4329;
+  --otter-pet-muzzle: #ecd5b5;
+  --otter-pet-belly: #d9b48f;
+  --otter-pet-stone: #9aa3a8;
+  position: fixed;
+  z-index: 15;
+  width: var(--otter-pet-size);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  -webkit-user-select: none;
+}
+.otter-pet:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+.otter-pet-dragging {
+  cursor: grabbing;
+}
+.otter-pet-otter {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 3px 6px var(--shadow));
+}
+.otter-pet-dragging .otter-pet-otter {
+  transform: scale(1.06) rotate(-4deg);
+}
+
+/* The otter's parts. */
+.otter-pet .otter-pet-fur { fill: var(--otter-pet-fur); }
+.otter-pet .otter-pet-fur-dark,
+.otter-pet .otter-pet-paw { fill: var(--otter-pet-fur-dark); }
+.otter-pet .otter-pet-muzzle { fill: var(--otter-pet-muzzle); }
+.otter-pet .otter-pet-belly { fill: var(--otter-pet-belly); }
+.otter-pet .otter-pet-stone { fill: var(--otter-pet-stone); }
+.otter-pet .otter-pet-whiskers { stroke: var(--otter-pet-fur-dark); }
+.otter-pet .otter-pet-cheek { fill: #f08b7a; opacity: 0.4; }
+.otter-pet .otter-pet-body { transform-box: view-box; transform-origin: 120px 240px; }
+.otter-pet .otter-pet-paw,
+.otter-pet .otter-pet-mouth,
+.otter-pet .otter-pet-eye > circle:first-child { transform-box: fill-box; transform-origin: center; }
+
+/* Faces: one at a time. */
+.otter-pet .otter-pet-eyes-happy,
+.otter-pet .otter-pet-eyes-closed,
+.otter-pet .otter-pet-brows-sad,
+.otter-pet .otter-pet-brows-worried,
+.otter-pet .otter-pet-cheek,
+.otter-pet .otter-pet-mouth,
+.otter-pet .otter-pet-z { display: none; }
+.otter-pet[data-mood='happy'] .otter-pet-eyes-happy,
+.otter-pet[data-mood='happy'] .otter-pet-cheek { display: inline; }
+.otter-pet[data-mood='happy'] .otter-pet-eyes-open { display: none; }
+.otter-pet[data-mood='sad'] .otter-pet-brows-sad,
+.otter-pet[data-mood='worried'] .otter-pet-brows-worried { display: inline; }
+.otter-pet[data-activity='asleep'][data-mood='neutral'] .otter-pet-eyes-open { display: none; }
+.otter-pet[data-activity='asleep'][data-mood='neutral'] .otter-pet-eyes-closed,
+.otter-pet[data-activity='asleep'][data-mood='neutral'] .otter-pet-z { display: inline; }
+.otter-pet[data-talking='true'] .otter-pet-smile { display: none; }
+.otter-pet[data-talking='true'] .otter-pet-mouth { display: inline; animation: otter-pet-talk 0.24s ease-in-out infinite alternate; }
+
+/* Moving. */
+.otter-pet .otter-pet-eye > circle:first-child { animation: otter-pet-blink 4.5s infinite; }
+.otter-pet[data-activity='busy'] .otter-pet-paw-l { animation: otter-pet-tap 0.5s ease-in-out infinite; }
+.otter-pet[data-activity='busy'] .otter-pet-paw-r { animation: otter-pet-tap 0.5s ease-in-out 0.25s infinite; }
+.otter-pet[data-activity='waiting'] .otter-pet-body { animation: otter-pet-look 3s ease-in-out infinite; }
+.otter-pet[data-activity='needs'] .otter-pet-body { animation: otter-pet-hop 2.4s ease-in-out infinite; }
+.otter-pet[data-activity='asleep'] .otter-pet-body { animation: otter-pet-breathe 4s ease-in-out infinite; }
+.otter-pet[data-mood='happy'] .otter-pet-body { animation: otter-pet-joy 0.6s ease-out 2; }
+.otter-pet-wave .otter-pet-body { animation: otter-pet-joy 0.5s ease-out 1; }
+.otter-pet .otter-pet-z { fill: var(--muted); font: 700 22px system-ui, sans-serif; animation: otter-pet-z 3s ease-in-out infinite; }
+.otter-pet .otter-pet-z1 { animation-delay: 1s; }
+.otter-pet .otter-pet-z2 { animation-delay: 2s; }
+
+@keyframes otter-pet-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+@keyframes otter-pet-talk { from { transform: scaleY(0.15); } to { transform: scaleY(1); } }
+@keyframes otter-pet-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes otter-pet-look { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-5deg); } 70% { transform: rotate(5deg); } }
+@keyframes otter-pet-hop { 0%, 70%, 100% { transform: translateY(0); } 78% { transform: translateY(-12px); } 86% { transform: translateY(0); } 92% { transform: translateY(-6px); } }
+@keyframes otter-pet-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025, 0.985); } }
+@keyframes otter-pet-joy { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px) rotate(-3deg); } }
+@keyframes otter-pet-z { 0% { opacity: 0; transform: translateY(6px); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+
+/* The bubble: above the otter, or below it near the top of the window; it leans in from the sides. */
+.otter-pet-bubble {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  padding: 8px 26px 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: 0 6px 18px var(--shadow);
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  text-align: left;
+}
+.otter-pet-bubble[hidden] { display: none; }
+.otter-pet-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -7px;
+  border: 7px solid transparent;
+  border-top-color: var(--line-strong);
+}
+.otter-pet-below .otter-pet-bubble { top: calc(100% + 10px); bottom: auto; }
+.otter-pet-below .otter-pet-bubble::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--line-strong); }
+.otter-pet-lean-left .otter-pet-bubble { left: auto; right: 0; transform: none; }
+.otter-pet-lean-left .otter-pet-bubble::after { left: auto; right: calc(var(--otter-pet-size) / 2 - 7px); margin-left: 0; }
+.otter-pet-lean-right .otter-pet-bubble { left: 0; transform: none; }
+.otter-pet-lean-right .otter-pet-bubble::after { left: calc(var(--otter-pet-size) / 2); }
+.otter-pet-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.otter-pet-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.otter-pet-word { border-radius: 3px; transition: background-color 0.08s, color 0.08s; }
+.otter-pet-word:not(.otter-pet-said) { color: var(--muted); }
+.otter-pet-word.otter-pet-on { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.otter-pet-close {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 20px;
+  cursor: pointer;
+}
+.otter-pet-close:hover { background: var(--hover); color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .otter-pet *,
+  .otter-pet-otter { animation: none !important; transition: none !important; }
+  .otter-pet[data-talking='true'] .otter-pet-mouth { transform: scaleY(0.6); }
+}

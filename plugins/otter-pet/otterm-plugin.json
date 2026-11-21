@@ -1,0 +1,80 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cognikas/otterm-plugins/main/types/otterm-plugin.schema.json",
+  "id": "otter-pet",
+  "name": "Otter pet",
+  "version": "1.0.0",
+  "description": "An otter that floats over the window: drag it anywhere. It shows how the terminals are doing, says in a bubble what Claude finished in the ones you aren't looking at, and a click opens that terminal.",
+  "author": "Willy Sotomayor",
+  "api": 1,
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "where": ["window", "remote"],
+  "permissions": [],
+  "settings": [
+    {
+      "key": "which",
+      "type": "choice",
+      "label": "Tell me about",
+      "default": "others",
+      "choices": [
+        { "value": "others", "label": "Terminals I'm not looking at" },
+        { "value": "all", "label": "Every terminal" }
+      ],
+      "help": "When Otterm isn't the window in front, every terminal counts as not looked at."
+    },
+    {
+      "key": "say",
+      "type": "choice",
+      "label": "When a terminal finishes, the bubble shows",
+      "default": "result",
+      "choices": [
+        { "value": "result", "label": "The first sentence of Claude's reply" },
+        { "value": "name", "label": "Only which terminal finished" },
+        { "value": "nothing", "label": "Nothing (the otter only smiles)" }
+      ]
+    },
+    {
+      "key": "bubbleSeconds",
+      "type": "number",
+      "label": "Keep each bubble at least",
+      "default": 8,
+      "min": 3,
+      "max": 60,
+      "unit": "s"
+    },
+    {
+      "key": "size",
+      "type": "choice",
+      "label": "Size",
+      "default": "medium",
+      "choices": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
+    },
+    {
+      "key": "sleepAfter",
+      "type": "number",
+      "label": "Falls asleep when no terminal has worked for",
+      "default": 15,
+      "min": 1,
+      "max": 240,
+      "unit": "min",
+      "help": "Empty to stay awake."
+    },
+    {
+      "key": "quiet",
+      "type": "text",
+      "label": "Quiet hours",
+      "default": "",
+      "help": "No bubbles between these times, such as 22:00-08:00. The otter still shows how the terminals are doing."
+    },
+    {
+      "key": "phone",
+      "type": "boolean",
+      "label": "Show it on paired phones and laptops too",
+      "default": true
+    }
+  ]
+}
