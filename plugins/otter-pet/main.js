@@ -10,6 +10,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const NEEDS = new Set(['approval', 'trust', 'hooks', 'channels']);
 /** The agent is busy. */
 const BUSY = new Set(['starting', 'working']);
+/** The turn is over: your turn, or the agent waits on its own background work (a dev server, a subagent). */
+const ENDED = new Set(['your-turn', 'background']);
 /** @type {Record<string, string>} */
 const ASKS = {
   approval: 'asks for your permission',
@@ -216,7 +218,7 @@ function drawOtter() {
 
 /**
  * @typedef {{ id: string, name: string, group: string | null, line: string, mood: 'sad' | 'happy' | 'worried',
- *   needs: boolean, state: string, stateSince: number }} Said
+ *   needs: boolean, state: string, stateSince: number, msg: string | null }} Said
  */
 
 /** @param {import('otterm-plugin').Otterm} otterm */
@@ -319,6 +321,8 @@ export function activate(otterm) {
   const agents = () => otterm.terminals().filter((t) => t.kind !== 'shell');
   /** Each agent's last state seen, to tell a finish or a question from any other change. @type {Map<string, string>} */
   const seen = new Map(agents().map((t) => [t.id, t.state]));
+  /** The reply each terminal was last told about, so background work ending later doesn't say it again. @type {Map<string, string | null>} */
+  const told = new Map(agents().map((t) => [t.id, t.lastMessage]));
   let lastBusy = agents().some((t) => BUSY.has(t.state)) ? Date.now() : Math.max(0, ...agents().map((t) => t.stateSince));
   /** Lines waiting their turn: a question before a finish, one per terminal. @type {Said[]} */
   let queue = [];
@@ -333,7 +337,10 @@ export function activate(otterm) {
   /** @param {Said} s */
   const stillTrue = (s) => {
     const t = otterm.terminal(s.id);
-    return Boolean(t && t.state === s.state && t.stateSince === s.stateSince && !lookedAt(t));
+    if (!t || lookedAt(t)) return false;
+    // A question holds while it's asked; a finish while the terminal rests on that reply (your turn, or its own
+    // background work).
+    return s.needs ? t.state === s.state && t.stateSince === s.stateSince : ENDED.has(t.state) && t.lastMessage === s.msg;
   };
 
   const activity = () => {
@@ -459,11 +466,12 @@ export function activate(otterm) {
       if (BUSY.has(t.state)) lastBusy = Date.now();
       if (before === undefined || before === t.state || lookedAt(t)) continue;
       if (NEEDS.has(t.state) && !NEEDS.has(before)) {
-        say({ id: t.id, name: t.name, group: t.group, line: `${ASKS[t.state] ?? 'needs you'}.`, mood: 'worried', needs: true, state: t.state, stateSince: t.stateSince });
-      } else if (t.state === 'your-turn' && (BUSY.has(before) || before === 'background')) {
+        say({ id: t.id, name: t.name, group: t.group, line: `${ASKS[t.state] ?? 'needs you'}.`, mood: 'worried', needs: true, state: t.state, stateSince: t.stateSince, msg: null });
+      } else if (ENDED.has(t.state) && !ENDED.has(before) && told.get(t.id) !== t.lastMessage) {
+        told.set(t.id, t.lastMessage);
         const mode = otterm.config.get('say');
         const line = mode === 'nothing' ? '' : mode === 'name' ? 'finished.' : speakable(t.lastMessage) || 'finished.';
-        if (line) say({ id: t.id, name: t.name, group: t.group, line, mood: moodFor(line), needs: false, state: t.state, stateSince: t.stateSince });
+        if (line) say({ id: t.id, name: t.name, group: t.group, line, mood: moodFor(line), needs: false, state: t.state, stateSince: t.stateSince, msg: t.lastMessage });
         else {
           mood = 'happy';
           moodUntil = Date.now() + HAPPY_MS;
