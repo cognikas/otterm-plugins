@@ -12,10 +12,15 @@ resized.
 | A terminal needs you (a permission, trusting a folder or its hooks) | A "!" over its head, worried brows; it hops and waves |
 | One failed (its last reply reads as a failure) and you haven't looked at it yet | Sad brows, drooping ears, a tear |
 | One works | Types on a little laptop; after 10 minutes of it, it sweats |
-| One waits on its own background work (a dev server, a subagent) | Juggles its stone, its eyes following it |
+| One waits on its own background work (a dev server, a subagent) | Tosses its stone up beside its head and catches it, its eyes following it; a pup rides on its belly for each task, two at most |
 | Nothing going on | Breathes and blinks |
-| No terminal has worked for a while (15 minutes; change it, or turn it off, in Settings) | Floats asleep on its back, z's rising |
-| One just finished well | Happy eyes and a hop, its stone held up golden; confetti when the tests pass or something was merged or shipped |
+| No terminal has worked for a while (15 minutes; change it, or turn it off, in Settings) | Floats asleep on its back, z's rising (a cat sleeps on a cushion) |
+| One just finished well | Happy eyes and a hop, its stone held up golden beside its head; confetti when the tests pass or something was merged or shipped |
+
+**It can be another animal**: an otter (the default), a cat, a penguin or a beaver, each with every pose; each device
+picks its own in the menu. **It wears the hat of the agent it's showing**: orange for Claude, slate for Codex. The
+pups count what Otterm says runs in the background, which doesn't tell a subagent from a shell, so a dev server
+counts too.
 
 **A bubble says what finished**, for the terminals you aren't looking at: the terminal's name with its group's color,
 then the first sentence of Claude's reply, its words lighting up at about the pace of speech. Questions go first (a
@@ -37,7 +42,7 @@ Shift+F10 opens its menu.
 
 **Its menu** (right-click it, or hold it on a touch screen): how they are, say the last one again, open the one that
 needs you or failed, Do not disturb (30 minutes, an hour, or until tomorrow at 8), its size, one otter or one per
-group, and back to the corner. What you pick there is kept on that device; Settings has the defaults.
+group, the animal, and back to the corner. What you pick there is kept on that device; Settings has the defaults.
 
 **One otter per group**, if you like: a raft, each otter with a scarf in its group's color, showing how its group is
 doing, and the bubble points at the one that speaks. Up to six otters; more groups share the last one. Not on phones.
@@ -53,6 +58,8 @@ doing, and the bubble points at the one that speaks. Up to six otters; more grou
 | When a terminal finishes, the bubble shows | The first sentence of the reply, only which terminal finished, or nothing (the otter only smiles) |
 | Keep each bubble at least | 8 s by default; a long line stays as long as it takes to read |
 | Otters | One for every terminal (the default), or one per group, in a raft. Each device can pick its own in the menu |
+| Character | An otter (the default), a cat, a penguin or a beaver. Each device can pick its own in the menu |
+| Put on the agent's hat | On by default: orange for Claude, slate for Codex |
 | Size | Small, medium or large. Each device can pick its own in the menu |
 | Falls asleep when no terminal has worked for | 15 min by default; empty to stay awake |
 | Tell me when a terminal's context is nearly full | On by default |

@@ -95,6 +95,8 @@ const TEXT = {
     dndOff: (until) => `Disturb me again (quiet until ${until})`,
     size: 'Size',
     sizes: /** @type {Record<string, string>} */ ({ small: 'S', medium: 'M', large: 'L' }),
+    character: 'Character',
+    animals: /** @type {Record<string, string>} */ ({ otter: 'Otter', cat: 'Cat', penguin: 'Penguin', beaver: 'Beaver' }),
     otters: 'Otters',
     one: 'One',
     group: 'Per group',
@@ -125,14 +127,19 @@ export function firstProseLine(text) {
   return '';
 }
 
+/** A file's extension at the end of a code span (with a line number, perhaps): a member such as console.log isn't one. */
+const FILE_EXT =
+  /\.(js|mjs|cjs|jsx|ts|tsx|json|md|css|scss|html|py|rb|go|rs|java|kt|swift|sh|zsh|ya?ml|toml|txt|sql|vue|svelte|c|h|cc|cpp|hpp|cs|php|lock|env|xml|csv|ini|cfg|plist|gradle|dart|lua|ex|exs)(:\d+(-\d+)?)?$/i;
+
 /**
- * A code span as a word: `src/daemon/usage.ts:520` is "usage"; `npm run test` stays; a commit hash says nothing.
+ * A code span as a word: `src/daemon/usage.ts:520` is "usage"; `npm run test` and `console.log` stay; a commit hash
+ * says nothing.
  * @param {string} code
  */
 function codeWord(code) {
   const c = code.trim();
   if (/\s/.test(c)) return c;
-  if (/[\\/]/.test(c) || /\.[a-z]{1,5}(:\d+)?$/i.test(c)) {
+  if (/[\\/]/.test(c) || FILE_EXT.test(c)) {
     const last = c.split(/[\\/]/).filter(Boolean).pop() ?? '';
     return last.replace(/:\d+(-\d+)?$/, '').replace(/\.[a-z0-9]{1,5}$/i, '');
   }
@@ -199,10 +206,10 @@ export function speakable(message) {
 // slip through it.
 /** A failure named in a line. */
 const FAILURE =
-  /(?<![\p{L}\p{N}])(fail(ed|s|ing|ures?)?|errors?|broke|broken|crash(ed|es)?|couldn['’]?t|could not|can['’]?t|cannot|unable|no pude|no logré|falló|fallan?|fallaron|fallando|rompió|no se puede)(?![\p{L}\p{N}])/iu;
-/** A fix or a pass in the same line: the failure it names is over. */
+  /(?<![\p{L}\p{N}])(fail(ed|s|ing|ures?)?|errors?|broke|broken|crash(ed|es)?|couldn['’]?t|could not|can['’]?t|cannot|unable|(\p{L}+n['’]t|not|no|never) pass(es|ed|ing)?|not all (\d+ )?(tests|checks)|no pude|no logré|falló|fallan?|fallaron|fallando|rompió|no se puede|no pasan?|no pasaron)(?![\p{L}\p{N}])/iu;
+/** A fix or a pass in the same line (not "not passing"): the failure it names is over. */
 const FIXED =
-  /(?<![\p{L}\p{N}])(fix(ed|es)?|resolved|solved|pass(es|ed|ing)?|no (more )?(errors?|failures?)|works now|arregl(é|ad[oa]s?)|correg(í|id[oa]s?)|resuelt[oa]s?|solucionad[oa]s?|pasan|pasaron|sin errores|ya funciona)(?![\p{L}\p{N}])/iu;
+  /(?<![\p{L}\p{N}])(fix(ed|es)?|resolved|solved|(?<!(\p{L}n['’]t|not|no|never) |not all (\d+ )?(tests|checks) )pass(es|ed|ing)?|no (more )?(errors?|failures?)|works now|arregl(é|ad[oa]s?)|correg(í|id[oa]s?)|resuelt[oa]s?|solucionad[oa]s?|(?<!no )pasan|(?<!no )pasaron|sin errores|ya funciona)(?![\p{L}\p{N}])/iu;
 /** ...unless it says the failure goes on: "still fails after the fix", "couldn't fix it". */
 const STILL =
   /(?<![\p{L}\p{N}])(still|again|couldn['’]?t|could not|can['’]?t|cannot|didn['’]?t|did not|unable|todavía|aún|sigue|siguen|no pude|no logré)(?![\p{L}\p{N}])/iu;
@@ -225,15 +232,17 @@ export function isNotice(message) {
   return NOT_AN_ANSWER.test(String(message ?? '').trim());
 }
 
+/** Tests passing (not "not passing") or something shipped. */
+const CHEERS =
+  /(?<![\p{L}\p{N}])(tests? (now )?(?<!(\p{L}n['’]t|not|no|never) )pass(es|ed|ing)?|(?<!not )all (\d+ )?(tests|checks)( now)? pass(es|ed)?|(?<!(\p{L}n['’]t|not|no|never) )passing|green|merged|released|shipped|deployed|published|(?<!no )pasan|(?<!no )pasaron|en verde|mergead[oa]|publicad[oa]|desplegad[oa])(?![\p{L}\p{N}])/iu;
+
 /**
  * How a good finish is celebrated: confetti when the tests pass or something shipped, the stone held up otherwise.
  * @param {string} line
  * @returns {'trophy' | 'confetti'}
  */
 export function cheerFor(line) {
-  return /\b(tests? (now )?pass(es|ed|ing)?|all (\d+ )?(tests|checks)|passing|green|merged|released|shipped|deployed|published|pasan|pasaron|en verde|mergead[oa]|publicad[oa]|desplegad[oa])\b/i.test(line)
-    ? 'confetti'
-    : 'trophy';
+  return CHEERS.test(line) ? 'confetti' : 'trophy';
 }
 
 /**
@@ -244,9 +253,12 @@ export function cheerFor(line) {
 export function inQuietHours(spec, now) {
   const m = /^\s*(\d{1,2})(?::(\d{2}))?\s*-\s*(\d{1,2})(?::(\d{2}))?\s*$/.exec(typeof spec === 'string' ? spec : '');
   if (!m) return false;
-  const from = Number(m[1]) * 60 + Number(m[2] ?? 0);
-  const to = Number(m[3]) * 60 + Number(m[4] ?? 0);
-  if (from > 24 * 60 || to > 24 * 60 || from === to) return false;
+  const [h1, m1, h2, m2] = [m[1], m[2] ?? '0', m[3], m[4] ?? '0'].map(Number);
+  // A real time of day: hours to 24, minutes to 59, and 24 only as 24:00.
+  if ([[h1, m1], [h2, m2]].some(([h, min]) => h > 24 || min > 59 || (h === 24 && min > 0))) return false;
+  const from = h1 * 60 + m1;
+  const to = h2 * 60 + m2;
+  if (from === to) return false;
   const t = now.getHours() * 60 + now.getMinutes();
   return from < to ? t >= from && t < to : t >= from || t < to;
 }
@@ -278,12 +290,80 @@ function svg(tag, attrs = {}, ...kids) {
 
 const CONFETTI = ['#e5484d', '#f5a524', '#46a758', '#3e8ef7', '#a855f7', '#ec4899'];
 
-/** The otter, from the spike: holding a stone, with a face for each mood and the props of each state. */
-function drawOtter() {
+/**
+ * What changes from one animal to another. Everything else (the face, the paws, the props of each state) is shared,
+ * so every animal has every pose.
+ * @typedef {{ ears: 'round' | 'small' | 'pointy' | 'none', face: 'muzzle' | 'mask', nose: 'otter' | 'cat' | 'beak' | 'beaver', whiskers: boolean, tail: 'none' | 'curl' | 'paddle', feet: boolean, sleep: 'float' | 'cushion' }} Animal
+ */
+/** @type {Record<string, Animal>} */
+const ANIMALS = {
+  otter: { ears: 'round', face: 'muzzle', nose: 'otter', whiskers: true, tail: 'none', feet: false, sleep: 'float' },
+  cat: { ears: 'pointy', face: 'muzzle', nose: 'cat', whiskers: true, tail: 'curl', feet: false, sleep: 'cushion' },
+  penguin: { ears: 'none', face: 'mask', nose: 'beak', whiskers: false, tail: 'none', feet: true, sleep: 'float' },
+  beaver: { ears: 'small', face: 'muzzle', nose: 'beaver', whiskers: true, tail: 'paddle', feet: false, sleep: 'float' },
+};
+const ANIMAL_KEYS = Object.keys(ANIMALS);
+
+/**
+ * How many tasks a terminal waits on, from Otterm's few words about its background work ("Review auth and 2 more"):
+ * at least one while it waits.
+ * @param {string | null | undefined} work
+ */
+export function backgroundCount(work) {
+  const m = / and (\d+) more$/.exec(String(work ?? ''));
+  return m ? 1 + Number(m[1]) : 1;
+}
+
+/** The ears, a pair of groups that can droop. @param {Animal['ears']} kind */
+function ears(kind) {
+  if (kind === 'none') return [];
+  const pair = (/** @type {(s: number) => SVGElement[]} */ draw) =>
+    [-1, 1].map((s) => svg('g', { class: `otter-pet-ear otter-pet-ear-${s < 0 ? 'l' : 'r'}` }, ...draw(s)));
+  if (kind === 'pointy') {
+    return pair((s) => [
+      svg('path', { class: 'otter-pet-fur', d: `M${120 + s * 70} 74 L${120 + s * 50} 20 L${120 + s * 22} 48 Z` }),
+      svg('path', { class: 'otter-pet-ear-in', d: `M${120 + s * 60} 64 L${120 + s * 48} 34 L${120 + s * 32} 50 Z` }),
+    ]);
+  }
+  const [x, y, r] = kind === 'small' ? [52, 62, 11] : [58, 58, 15];
+  return pair((s) => [svg('circle', { cx: 120 + s * x, cy: y, r, class: 'otter-pet-fur' }), svg('circle', { cx: 120 + s * x, cy: y, r: r / 2, class: 'otter-pet-fur-dark' })]);
+}
+
+/** The light part of the face: a muzzle, or a penguin's mask around the eyes. @param {Animal['face']} kind */
+function face(kind) {
+  return kind === 'mask'
+    ? svg('path', { class: 'otter-pet-muzzle', d: 'M120 86 C146 62 184 80 177 118 C172 152 146 176 120 176 C94 176 68 152 63 118 C56 80 94 62 120 86 Z' })
+    : svg('ellipse', { cx: 120, cy: 140, rx: 50, ry: 36, class: 'otter-pet-muzzle' });
+}
+
+/** @param {Animal['nose']} kind */
+function nose(kind) {
+  if (kind === 'cat') return svg('path', { class: 'otter-pet-nose-pink', d: 'M112 124 h16 l-8 9 z' });
+  if (kind === 'beak') return svg('path', { class: 'otter-pet-beak', d: 'M103 124 Q120 115 137 124 L120 145 Z' });
+  return svg('path', { d: 'M107 124 q13 -6 26 0 q-3 11 -13 13 q-10 -2 -13 -13z', fill: '#2a1a12' });
+}
+
+/** Behind the body: a cat's curled tail, a beaver's paddle. @param {Animal['tail']} kind */
+function tail(kind) {
+  if (kind === 'curl') return [svg('path', { class: 'otter-pet-tail-curl', d: 'M178 236 C220 232 230 188 204 170' })];
+  if (kind === 'paddle') {
+    return [
+      svg(
+        'g',
+        { class: 'otter-pet-paddle' },
+        svg('ellipse', { cx: 194, cy: 238, rx: 34, ry: 15, transform: 'rotate(-22 194 238)' }),
+        svg('path', { class: 'otter-pet-paddle-lines', d: 'M176 236 l32 -13 M182 247 l32 -13 M182 228 l14 18 M199 221 l14 18' }),
+      ),
+    ];
+  }
+  return [];
+}
+
+/** The animal (an otter unless you pick another), holding a stone, with a face for each mood and the props of each state. @param {string} [kind] */
+function drawOtter(kind = 'otter') {
+  const a = ANIMALS[kind] ?? ANIMALS.otter;
   const eye = (/** @type {number} */ x) =>
     svg('g', { class: 'otter-pet-eye', transform: `translate(${x} 106)` }, svg('circle', { r: 9, fill: '#1d1410' }), svg('circle', { cx: 3, cy: -3, r: 3, fill: '#fff' }));
-  const ear = (/** @type {string} */ side, /** @type {number} */ x) =>
-    svg('g', { class: `otter-pet-ear otter-pet-ear-${side}` }, svg('circle', { cx: x, cy: 58, r: 15, class: 'otter-pet-fur' }), svg('circle', { cx: x, cy: 58, r: 8, class: 'otter-pet-fur-dark' }));
   const drop = (/** @type {string} */ name, /** @type {number} */ x, /** @type {number} */ y) =>
     svg('path', { class: `otter-pet-drop otter-pet-${name}`, d: `M${x} ${y} q-6 9 0 13 q6 -4 0 -13z` });
   const sparkle = (/** @type {number} */ x, /** @type {number} */ y, /** @type {number} */ r) => {
@@ -292,13 +372,37 @@ function drawOtter() {
   };
   const stroke = { fill: 'none', stroke: '#1d1410', 'stroke-width': 4.5, 'stroke-linecap': 'round' };
   const brow = { stroke: '#1d1410', 'stroke-width': 4, 'stroke-linecap': 'round' };
-  // Asleep, it floats on its back: the z's rise from its face, which is then on the left.
+  // A pup rides on the belly while background work runs: a small head of the same animal, eyes shut.
+  const pup = (/** @type {string} */ name, /** @type {number} */ x) =>
+    svg(
+      'g',
+      { class: `otter-pet-pup otter-pet-pup-${name}` },
+      svg('ellipse', { cx: x, cy: 240, rx: 20, ry: 12, class: 'otter-pet-fur' }),
+      svg(
+        'g',
+        { transform: `translate(${x - 120 * 0.3} ${216 - 108 * 0.3}) scale(0.3)` },
+        ...ears(a.ears),
+        svg('circle', { cx: 120, cy: 108, r: 70, class: 'otter-pet-fur' }),
+        face(a.face),
+        svg('g', { ...stroke, 'stroke-width': 9 }, svg('path', { d: 'M80 106 q12 10 24 0' }), svg('path', { d: 'M136 106 q12 10 24 0' })),
+        nose(a.nose),
+      ),
+    );
+  // Asleep, it floats on its back and the z's rise from its face, then on the left; a cat sleeps sitting on its
+  // cushion, the z's at its ear.
+  const [zx, zy] = a.sleep === 'cushion' ? [174, 66] : [84, 92];
   const z = (/** @type {number} */ i) => {
-    const t = svg('text', { class: `otter-pet-z otter-pet-z${i}`, x: 84 + i * 14, y: 92 - i * 16 });
+    const t = svg('text', { class: `otter-pet-z otter-pet-z${i}`, x: zx + i * 13, y: zy - i * 15 });
     t.textContent = 'z';
     return t;
   };
-  /** A strip of water from y, its waves 40 wide and amp high, below the viewBox to the bottom. @param {number} y @param {number} amp */
+  // Code it types rises from behind the laptop, at its sides, clear of the face.
+  const glyph = (/** @type {string} */ text, /** @type {number} */ x, /** @type {number} */ i) => {
+    const t = svg('text', { class: `otter-pet-glyph otter-pet-glyph${i}`, x, y: 170, 'text-anchor': 'middle' });
+    t.textContent = text;
+    return t;
+  };
+  /** A strip of water from y, its waves 40 wide and amp high, down past the bottom. @param {number} y @param {number} amp */
   const water = (y, amp) => {
     let d = `M-40 ${y}`;
     for (let x = -40; x < 300; x += 40) d += ` q10 ${-amp} 20 0 q10 ${amp} 20 0`;
@@ -319,38 +423,63 @@ function drawOtter() {
   return svg(
     'svg',
     { class: 'otter-pet-otter', viewBox: '0 0 240 260', 'aria-hidden': 'true' },
+    svg('rect', { class: 'otter-pet-cushion', x: 14, y: 210, width: 212, height: 36, rx: 18 }),
     svg(
       'g',
       { class: 'otter-pet-body' },
+      ...tail(a.tail),
       svg('ellipse', { cx: 120, cy: 212, rx: 74, ry: 46, class: 'otter-pet-fur' }),
       svg('ellipse', { cx: 120, cy: 218, rx: 48, ry: 34, class: 'otter-pet-belly' }),
-      ear('l', 62),
-      ear('r', 178),
+      ...(a.feet ? [svg('ellipse', { class: 'otter-pet-feet', cx: 96, cy: 254, rx: 17, ry: 7 }), svg('ellipse', { class: 'otter-pet-feet', cx: 144, cy: 254, rx: 17, ry: 7 })] : []),
+      ...ears(a.ears),
       svg('circle', { cx: 120, cy: 108, r: 70, class: 'otter-pet-fur' }),
-      svg('ellipse', { cx: 120, cy: 140, rx: 50, ry: 36, class: 'otter-pet-muzzle' }),
+      face(a.face),
       // In a raft, a scarf in its group's color.
       svg('g', { class: 'otter-pet-scarf' }, svg('path', { d: 'M66 168 Q120 200 174 168 L176 181 Q120 214 64 181 Z' }), svg('path', { d: 'M146 186 l8 26 l13 -5 l-7 -24 Z' })),
+      // The agent's hat: orange for Claude, slate for Codex.
+      svg(
+        'g',
+        { class: 'otter-pet-hat' },
+        svg('path', { class: 'otter-pet-hat-top', d: 'M72 66 Q120 4 168 66 Z' }),
+        svg('rect', { class: 'otter-pet-hat-brim', x: 66, y: 56, width: 108, height: 15, rx: 7.5 }),
+        svg('circle', { class: 'otter-pet-hat-ball', cx: 120, cy: 30, r: 9 }),
+      ),
       svg('ellipse', { class: 'otter-pet-cheek', cx: 78, cy: 138, rx: 11, ry: 7 }),
       svg('ellipse', { class: 'otter-pet-cheek', cx: 162, cy: 138, rx: 11, ry: 7 }),
+      // The screen's light on its face while it types.
+      svg('ellipse', { class: 'otter-pet-glow', cx: 120, cy: 156, rx: 52, ry: 20 }),
       svg('g', { class: 'otter-pet-eyes-open' }, eye(92), eye(148)),
       svg('g', { class: 'otter-pet-eyes-happy', ...stroke }, svg('path', { d: 'M82 109 q10 -12 20 0' }), svg('path', { d: 'M138 109 q10 -12 20 0' })),
       svg('g', { class: 'otter-pet-eyes-closed', ...stroke }, svg('path', { d: 'M82 106 q10 8 20 0' }), svg('path', { d: 'M138 106 q10 8 20 0' })),
       svg('g', { class: 'otter-pet-brows-sad', ...brow }, svg('path', { d: 'M80 93 l20 -6' }), svg('path', { d: 'M160 93 l-20 -6' })),
       svg('g', { class: 'otter-pet-brows-worried', ...brow }, svg('path', { d: 'M81 86 l19 -10' }), svg('path', { d: 'M159 86 l-19 -10' })),
-      svg('path', { d: 'M107 124 q13 -6 26 0 q-3 11 -13 13 q-10 -2 -13 -13z', fill: '#2a1a12' }),
+      nose(a.nose),
       svg('path', { class: 'otter-pet-smile', d: 'M104 146 q8 8 16 0 q8 8 16 0', fill: 'none', stroke: '#2a1a12', 'stroke-width': 3.5, 'stroke-linecap': 'round' }),
       svg('ellipse', { class: 'otter-pet-mouth', cx: 120, cy: 152, rx: 10, ry: 7, fill: '#4a1f1a' }),
-      svg(
-        'g',
-        { class: 'otter-pet-whiskers', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.7 },
-        svg('path', { d: 'M84 134 l-30 -6' }),
-        svg('path', { d: 'M84 141 l-30 2' }),
-        svg('path', { d: 'M156 134 l30 -6' }),
-        svg('path', { d: 'M156 141 l30 2' }),
-      ),
+      ...(a.nose === 'beaver'
+        ? [svg('rect', { class: 'otter-pet-teeth', x: 110, y: 137, width: 9, height: 15, rx: 2 }), svg('rect', { class: 'otter-pet-teeth', x: 121, y: 137, width: 9, height: 15, rx: 2 })]
+        : []),
+      ...(a.whiskers
+        ? [
+            svg(
+              'g',
+              { class: 'otter-pet-whiskers', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.7 },
+              svg('path', { d: 'M84 134 l-30 -6' }),
+              svg('path', { d: 'M84 141 l-30 2' }),
+              svg('path', { d: 'M156 134 l30 -6' }),
+              svg('path', { d: 'M156 141 l30 2' }),
+            ),
+          ]
+        : []),
       drop('sweat', 170, 70),
       drop('tear', 90, 118),
-      svg('ellipse', { cx: 120, cy: 196, rx: 20, ry: 14, class: 'otter-pet-stone' }),
+      svg('g', { class: 'otter-pet-toss' }, svg('ellipse', { cx: 120, cy: 196, rx: 20, ry: 14, class: 'otter-pet-stone' })),
+      pup('one', 120),
+      pup('two-a', 98),
+      pup('two-b', 142),
+      // Its paws go behind the laptop to type, on the keys you can't see.
+      svg('ellipse', { class: 'otter-pet-paw otter-pet-paw-l', cx: 98, cy: 194, rx: 13, ry: 10 }),
+      svg('ellipse', { class: 'otter-pet-paw otter-pet-paw-r', cx: 142, cy: 194, rx: 13, ry: 10 }),
       svg(
         'g',
         { class: 'otter-pet-laptop' },
@@ -358,10 +487,22 @@ function drawOtter() {
         svg('circle', { class: 'otter-pet-laptop-logo', cx: 120, cy: 183, r: 5 }),
         svg('path', { class: 'otter-pet-laptop-base', d: 'M70 202 H170 L162 213 H78 Z' }),
       ),
-      svg('ellipse', { class: 'otter-pet-paw otter-pet-paw-l', cx: 98, cy: 194, rx: 13, ry: 10 }),
-      svg('ellipse', { class: 'otter-pet-paw otter-pet-paw-r', cx: 142, cy: 194, rx: 13, ry: 10 }),
+      svg('g', { class: 'otter-pet-code' }, glyph('</>', 82, 0), glyph('{ }', 158, 1), glyph(';', 82, 2)),
+      // An arm up to a raised paw, so the paw doesn't float: waving, and holding the stone up.
+      svg('path', { class: 'otter-pet-arm otter-pet-arm-wave', d: 'M158 180 Q192 154 200 112' }),
+      svg('path', { class: 'otter-pet-arm otter-pet-arm-cheer', d: 'M156 180 Q184 152 188 112' }),
       svg('g', { class: 'otter-pet-alert' }, svg('rect', { x: 194, y: 4, width: 12, height: 26, rx: 6 }), svg('circle', { cx: 200, cy: 40, r: 6.5 })),
-      svg('g', { class: 'otter-pet-sparkles' }, sparkle(92, 26, 8), sparkle(152, 18, 10), sparkle(134, 54, 6)),
+      // A little rain cloud over its head when one failed.
+      svg(
+        'g',
+        { class: 'otter-pet-cloud' },
+        svg('path', { class: 'otter-pet-cloud-body', d: 'M86 8 a12 12 0 0 1 16 -12 a17 17 0 0 1 32 2 a12 12 0 0 1 20 10 a8 8 0 0 1 -6 14 h-58 a8 8 0 0 1 -4 -14 z' }),
+        svg('path', { class: 'otter-pet-rain otter-pet-rain0', d: 'M100 28 l-3 9' }),
+        svg('path', { class: 'otter-pet-rain otter-pet-rain1', d: 'M120 28 l-3 9' }),
+        svg('path', { class: 'otter-pet-rain otter-pet-rain2', d: 'M140 28 l-3 9' }),
+      ),
+      // Around the stone, held up beside its head when a turn ends well.
+      svg('g', { class: 'otter-pet-sparkles' }, sparkle(214, 50, 9), sparkle(160, 46, 6), sparkle(216, 104, 6)),
     ),
     // The water it floats on when asleep, over its lower half, drifting.
     svg(
@@ -399,6 +540,7 @@ function drawOtter() {
  * @property {{ label: string, run: () => void }} [action] A button under it.
  * @property {string} [otter] The otter that says it (its key), when it isn't the terminal's group's.
  * @property {boolean} [asked] You asked for it (a click, the menu): it shows even in quiet hours or Do not disturb.
+ * @property {() => void} [onShown] Called when it shows: a notice counts as told only then.
  */
 
 /**
@@ -440,6 +582,9 @@ export function activate(otterm) {
     return typeof set === 'string' && allowed.includes(set) ? set : allowed[0];
   };
   const mode = () => (otterm.phone ? 'one' : choice('otters', ['one', 'group']));
+  const animal = () => choice('character', ANIMAL_KEYS);
+  /** The animal the otters are drawn as. */
+  let drawn = animal();
 
   /** @param {Spec} w @returns {Otter} */
   const makeOtter = (w) => {
@@ -453,9 +598,20 @@ export function activate(otterm) {
       'data-cheer': 'none',
       'data-long': 'false',
       'data-talking': 'false',
+      'data-species': drawn,
     });
-    el.append(drawOtter());
+    el.append(drawOtter(drawn));
     return { ...w, el, mood: 'neutral', cheer: 'none', moodUntil: 0 };
+  };
+  /** Draws every otter again as the animal picked, when it changed. */
+  const redraw = () => {
+    const kind = animal();
+    if (kind === drawn) return;
+    drawn = kind;
+    for (const o of otters) {
+      o.el.dataset.species = kind;
+      o.el.replaceChildren(drawOtter(kind));
+    }
   };
 
   /** One otter, or one per group that has an agent (in the sidebar's order, No group last). */
@@ -546,6 +702,8 @@ export function activate(otterm) {
   const endedIn = new Map(agents().flatMap((t) => (ENDED.has(t.state) ? [[t.id, t.state]] : [])));
   /** When each agent was last doing something: sleep comes after a while without it. @type {Map<string, number>} */
   const busyAt = new Map(agents().map((t) => [t.id, ACTIVE.has(t.state) ? Date.now() : t.stateSince]));
+  /** When each terminal's current question began, once told (or there when the otter came): a new one is told too. @type {Map<string, number>} */
+  const asked = new Map(agents().flatMap((t) => (NEEDS.has(t.state) ? [[t.id, t.stateSince]] : [])));
   /** Terminals whose last reply reads as a failure you haven't seen yet: the otter is sad until you look. @type {Set<string>} */
   const failed = new Set();
   /** @param {import('otterm-plugin').Terminal} t */
@@ -610,9 +768,33 @@ export function activate(otterm) {
     return 'idle';
   };
 
+  /**
+   * The terminal behind what an otter shows (the one that needs you, failed, works, waits on itself; else the last to
+   * change): its agent's hat goes on the otter.
+   * @param {import('otterm-plugin').Terminal[]} list
+   * @param {string} act
+   */
+  const leadOf = (list, act) =>
+    (act === 'needs'
+      ? list.find((t) => NEEDS.has(t.state))
+      : act === 'failed'
+        ? list.find((t) => failed.has(t.id))
+        : act === 'busy'
+          ? list.find((t) => BUSY.has(t.state))
+          : act === 'waiting'
+            ? list.find((t) => t.state === 'background')
+            : undefined) ??
+    [...list].sort((x, y) => y.stateSince - x.stateSince)[0] ??
+    null;
+
   const paint = () => {
     const now = Date.now();
     const raft = otters.length > 1;
+    // Painted again when the soonest passing mood ends, on whichever otter.
+    if (cheerTimer) clearTimeout(cheerTimer);
+    cheerTimer = null;
+    const soonest = Math.min(Infinity, ...otters.map((o) => o.moodUntil).filter((t) => t > now));
+    if (soonest !== Infinity) cheerTimer = setTimeout(paint, soonest - now + 50);
     for (const o of otters) {
       const list = agents().filter(mine(o));
       const act = activityOf(list);
@@ -621,6 +803,10 @@ export function activate(otterm) {
       o.el.dataset.mood = fresh ? o.mood : act === 'needs' ? 'worried' : act === 'failed' ? 'sad' : 'neutral';
       o.el.dataset.cheer = fresh ? o.cheer : 'none';
       o.el.dataset.long = String(act === 'busy' && list.some((t) => t.state === 'working' && now - t.stateSince >= SWEAT_MS));
+      const lead = leadOf(list, act);
+      o.el.dataset.hat = otterm.config.get('hats') !== false && lead ? lead.kind : 'none';
+      const tasks = list.filter((t) => t.state === 'background').reduce((n, t) => n + backgroundCount(t.backgroundWork), 0);
+      o.el.dataset.pups = String(act === 'waiting' ? Math.min(2, tasks) : 0);
       const summary = TEXT.status(counts(list, act === 'asleep'));
       const label = raft ? `${o.name}: ${summary}` : summary;
       o.el.title = `${label}\n${TEXT.hint}`;
@@ -635,8 +821,6 @@ export function activate(otterm) {
     o.mood = mood;
     o.cheer = cheer;
     o.moodUntil = Date.now() + CHEER_MS;
-    if (cheerTimer) clearTimeout(cheerTimer);
-    cheerTimer = setTimeout(paint, CHEER_MS + 50);
     paint();
   };
 
@@ -673,6 +857,7 @@ export function activate(otterm) {
       return;
     }
     current = s;
+    s.onShown?.();
     if (s.kind !== 'status') last = s;
     const o = otterOf(s);
     cheerUp(o, s.mood, s.cheer ?? 'none');
@@ -788,7 +973,7 @@ export function activate(otterm) {
     arrange();
     const list = agents();
     const ids = new Set(list.map((t) => t.id));
-    for (const m of [seen, told, endedIn, busyAt]) for (const id of [...m.keys()]) if (!ids.has(id)) m.delete(id);
+    for (const m of [seen, told, endedIn, busyAt, asked]) for (const id of [...m.keys()]) if (!ids.has(id)) m.delete(id);
     for (const s of [failed, warnedFull]) for (const id of [...s]) if (!ids.has(id)) s.delete(id);
     const now = Date.now();
     for (const t of list) {
@@ -801,12 +986,16 @@ export function activate(otterm) {
       if (!ENDED.has(t.state) || seenNow(t)) failed.delete(t.id);
       const isFull = full(t);
       if (!isFull) warnedFull.delete(t.id);
-      if (before === undefined || before === t.state) {
+      // A question that wasn't told yet: it just asked, or asks something else (trust the folder, then a permission),
+      // even when one update carries both.
+      const asks = NEEDS.has(t.state) && asked.get(t.id) !== t.stateSince;
+      if (asks) asked.set(t.id, t.stateSince);
+      if (!asks && (before === undefined || before === t.state)) {
         if (ENDED.has(t.state)) endedIn.set(t.id, t.state);
         continue;
       }
       const again = endedIn.get(t.id) === 'background' && told.get(t.id) === t.lastMessage;
-      const finished = ENDED.has(t.state) && !ENDED.has(before) && !again;
+      const finished = before !== undefined && ENDED.has(t.state) && !ENDED.has(before) && !again;
       if (ENDED.has(t.state)) endedIn.set(t.id, t.state);
       // A notice (the usage limit, an API error) isn't Claude's answer: nothing to say, nothing to cheer.
       const notice = finished && isNotice(t.lastMessage);
@@ -816,7 +1005,7 @@ export function activate(otterm) {
         if (reply && moodFor(reply) === 'sad' && !seenNow(t)) failed.add(t.id);
       }
       if (lookedAt(t)) continue;
-      if (NEEDS.has(t.state) && !NEEDS.has(before)) {
+      if (asks) {
         const line = `${ASKS[t.state] ?? TEXT.needsYou}.`;
         say({ key: t.id, kind: 'needs', id: t.id, name: t.name, group: t.group, line, mood: 'worried', state: t.state, stateSince: t.stateSince, msg: null });
       } else if (finished && !notice) {
@@ -826,8 +1015,8 @@ export function activate(otterm) {
         const cheer = !reply || mood === 'sad' ? 'none' : cheerFor(reply);
         const note = isFull && warnFull() && !warnedFull.has(t.id) ? fullNote(t) : null;
         if (line) {
-          const said = say({ key: t.id, kind: 'finish', id: t.id, name: t.name, group: t.group, line, mood, cheer, state: t.state, stateSince: t.stateSince, msg: t.lastMessage, ...note });
-          if (note && said) warnedFull.add(t.id);
+          const onShown = note ? () => warnedFull.add(t.id) : undefined;
+          say({ key: t.id, kind: 'finish', id: t.id, name: t.name, group: t.group, line, mood, cheer, state: t.state, stateSince: t.stateSince, msg: t.lastMessage, ...note, onShown });
         } else {
           cheerUp(otterOfGroup(t.group), mood, cheer);
         }
@@ -850,7 +1039,7 @@ export function activate(otterm) {
       if (!AT_PROMPT.has(t.state) || warnedFull.has(t.id) || !full(t) || lookedAt(t)) continue;
       if (current?.key === t.id || queue.some((q) => q.key === t.id)) continue;
       const { note, action } = fullNote(t);
-      if (say({ key: t.id, kind: 'hot', id: t.id, name: t.name, group: t.group, line: note, mood: 'worried', action })) warnedFull.add(t.id);
+      say({ key: t.id, kind: 'hot', id: t.id, name: t.name, group: t.group, line: note, mood: 'worried', action, onShown: () => warnedFull.add(t.id) });
     }
   };
 
@@ -860,10 +1049,10 @@ export function activate(otterm) {
     if (typeof limit !== 'number' || limit <= 0 || !p || p.fiveHourPct === null || p.fiveHourPct < limit) return;
     // Once per 5-hour window, on this device; without its reset time, per 5 hours of the clock.
     const window5h = p.fiveHourResetsAt ?? `clock-${Math.floor(Date.now() / (5 * 3_600_000))}`;
-    if (otterm.store.get('planWarned') === window5h) return;
+    if (otterm.store.get('planWarned') === window5h || current?.key === 'plan' || queue.some((q) => q.key === 'plan')) return;
     const resets = p.fiveHourResetsAt ? new Date(p.fiveHourResetsAt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
     const line = TEXT.planNear(`${Math.round(p.fiveHourPct)}%`, resets);
-    if (say({ key: 'plan', kind: 'plan', id: '', name: TEXT.plan, group: null, line, mood: 'worried' })) otterm.store.set('planWarned', window5h);
+    say({ key: 'plan', kind: 'plan', id: '', name: TEXT.plan, group: null, line, mood: 'worried', onShown: () => otterm.store.set('planWarned', window5h) });
   };
 
   let lastInput = Date.now();
@@ -878,7 +1067,8 @@ export function activate(otterm) {
     const every = otterm.config.get('breakAfter');
     const now = Date.now();
     if (typeof every !== 'number' || every <= 0 || now - lastInput > BREAK_GAP_MS || now - streakFrom < every * 60_000) return;
-    if (say({ key: 'break', kind: 'break', id: '', name: TEXT.pet, group: null, line: TEXT.pause(every), mood: 'happy' })) streakFrom = now;
+    if (current?.key === 'break' || queue.some((q) => q.key === 'break')) return;
+    say({ key: 'break', kind: 'break', id: '', name: TEXT.pet, group: null, line: TEXT.pause(every), mood: 'happy', onShown: () => (streakFrom = Date.now()) });
   };
 
   // ---- Pressing it: a click opens, a drag moves the raft, a long press or a right-click opens the menu.
@@ -1051,7 +1241,7 @@ export function activate(otterm) {
     const until = dndUntil();
     const kids = [
       item(TEXT.menu.status, () => sayStatus(o)),
-      item(TEXT.menu.again, () => (last ? say({ ...last, asked: true }, true) : undefined), !last),
+      item(TEXT.menu.again, () => (last ? say({ ...last, asked: true, onShown: undefined }, true) : undefined), !last),
       ...opens.map(({ t, why }) => item(TEXT.menu.open(t.name, why), () => otterm.show(t.id))),
       sep(),
       until > Date.now()
@@ -1071,6 +1261,20 @@ export function activate(otterm) {
             [TEXT.menu.one, mode() === 'one', regroup('one')],
             [TEXT.menu.group, mode() === 'group', regroup('group')],
           ]),
+      chips(
+        TEXT.menu.character,
+        ANIMAL_KEYS.map((v) =>
+          /** @type {[string, boolean, () => void]} */ ([
+            TEXT.menu.animals[v] ?? v,
+            drawn === v,
+            () => {
+              otterm.store.set('character', v);
+              redraw();
+              paint();
+            },
+          ]),
+        ),
+      ),
       item(TEXT.menu.corner, () => {
         at = { fx: 1, fy: 1 };
         otterm.store.set('at', at);
@@ -1129,6 +1333,7 @@ export function activate(otterm) {
       place();
     }),
     otterm.config.onChange(() => {
+      redraw();
       arrange();
       place();
       paint();

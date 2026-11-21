@@ -54,6 +54,26 @@
       "help": "With one per group, each otter wears its group's color and shows how that group is doing. Each device can pick its own in the otter's menu."
     },
     {
+      "key": "character",
+      "type": "choice",
+      "label": "Character",
+      "default": "otter",
+      "choices": [
+        { "value": "otter", "label": "An otter" },
+        { "value": "cat", "label": "A cat" },
+        { "value": "penguin", "label": "A penguin" },
+        { "value": "beaver", "label": "A beaver" }
+      ],
+      "help": "Every one has every pose. Each device can pick its own in the menu."
+    },
+    {
+      "key": "hats",
+      "type": "boolean",
+      "label": "Put on the agent's hat",
+      "default": true,
+      "help": "Orange for Claude, slate for Codex: the agent of the terminal the otter is showing."
+    },
+    {
       "key": "size",
       "type": "choice",
       "label": "Size",
