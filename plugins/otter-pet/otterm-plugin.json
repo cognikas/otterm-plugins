@@ -3,13 +3,13 @@
   "id": "otter-pet",
   "name": "Otter pet",
   "version": "1.0.0",
-  "description": "An otter that floats over the window: drag it anywhere. It shows how the terminals are doing, says in a bubble what Claude finished in the ones you aren't looking at, and a click opens that terminal.",
+  "description": "An otter that floats over the window: drag it anywhere. It types while a terminal works, waves when one needs you, cries when one failed, sleeps when nothing works. A bubble says what Claude finished where you aren't looking; a click opens it. Right-click for its menu. One otter, or one per group.",
   "author": "Willy Sotomayor",
   "api": 1,
   "main": "main.js",
   "styles": ["styles.css"],
   "where": ["window", "remote"],
-  "permissions": [],
+  "permissions": ["type"],
   "settings": [
     {
       "key": "which",
@@ -43,6 +43,17 @@
       "unit": "s"
     },
     {
+      "key": "otters",
+      "type": "choice",
+      "label": "Otters",
+      "default": "one",
+      "choices": [
+        { "value": "one", "label": "One for every terminal" },
+        { "value": "group", "label": "One per group, in a raft" }
+      ],
+      "help": "With one per group, each otter wears its group's color and shows how that group is doing. Each device can pick its own in the otter's menu."
+    },
+    {
       "key": "size",
       "type": "choice",
       "label": "Size",
@@ -51,7 +62,8 @@
         { "value": "small", "label": "Small" },
         { "value": "medium", "label": "Medium" },
         { "value": "large", "label": "Large" }
-      ]
+      ],
+      "help": "Each device can pick its own in the otter's menu."
     },
     {
       "key": "sleepAfter",
@@ -62,6 +74,33 @@
       "max": 240,
       "unit": "min",
       "help": "Empty to stay awake."
+    },
+    {
+      "key": "warnHot",
+      "type": "boolean",
+      "label": "Tell me when a terminal's context is nearly full",
+      "default": true,
+      "help": "When Otterm shows its context in red, with a Compact button for Claude (it needs the type permission)."
+    },
+    {
+      "key": "planWarn",
+      "type": "number",
+      "label": "Tell me when the 5-hour limit is used up to",
+      "default": 90,
+      "min": 50,
+      "max": 100,
+      "unit": "%",
+      "help": "Once per 5-hour window. Empty for no warning."
+    },
+    {
+      "key": "breakAfter",
+      "type": "number",
+      "label": "Suggest a break after working for",
+      "default": 90,
+      "min": 15,
+      "max": 480,
+      "unit": "min",
+      "help": "Counts while you type or click in Otterm; 10 minutes away is a break. Empty for no reminder."
     },
     {
       "key": "quiet",

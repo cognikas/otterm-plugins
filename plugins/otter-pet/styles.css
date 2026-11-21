@@ -1,37 +1,48 @@
-/* Otter pet. Above the panes (z-index 5), below Otterm's dialogs (20), popovers (25) and toasts (30). */
+/* Otter pet. Above the panes (z-index 5), below Otterm's dialogs (20), popovers (25) and toasts (30); its menu just
+   above it. */
 .otter-pet {
   --otter-pet-size: 96px;
+  --otter-pet-anchor: 48px;
   --otter-pet-fur: #8a5a3b;
   --otter-pet-fur-dark: #6b4329;
   --otter-pet-muzzle: #ecd5b5;
   --otter-pet-belly: #d9b48f;
   --otter-pet-stone: #9aa3a8;
+  --otter-pet-gold: #e9b949;
+  --otter-pet-drop: #7cc4f0;
+  --otter-pet-water: #4aa3df;
+  --otter-pet-alert: #f59e0b;
+  --otter-pet-laptop: #c9ced3;
+  --otter-pet-laptop-dark: #8b949b;
   position: fixed;
   z-index: 15;
-  width: var(--otter-pet-size);
-  cursor: grab;
   user-select: none;
-  touch-action: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
 }
-.otter-pet:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
+.otter-pet-row { display: flex; align-items: flex-end; }
+.otter-pet-one {
+  --otter-pet-group: transparent;
+  position: relative;
+  flex: none;
+  width: var(--otter-pet-size);
   border-radius: 12px;
+  cursor: grab;
 }
-.otter-pet-dragging {
-  cursor: grabbing;
-}
+.otter-pet-raft .otter-pet-one + .otter-pet-one { margin-left: calc(var(--otter-pet-size) * -0.18); }
+.otter-pet-one:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.otter-pet-dragging .otter-pet-one { cursor: grabbing; }
 .otter-pet-otter {
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
   filter: drop-shadow(0 3px 6px var(--shadow));
+  transition: transform 0.12s;
 }
-.otter-pet-dragging .otter-pet-otter {
-  transform: scale(1.06) rotate(-4deg);
-}
+.otter-pet-pressed .otter-pet-otter { transform: scale(0.92); }
+.otter-pet-dragging .otter-pet-otter { transform: scale(1.06) rotate(-4deg); }
 
 /* The otter's parts. */
 .otter-pet .otter-pet-fur { fill: var(--otter-pet-fur); }
@@ -39,60 +50,149 @@
 .otter-pet .otter-pet-paw { fill: var(--otter-pet-fur-dark); }
 .otter-pet .otter-pet-muzzle { fill: var(--otter-pet-muzzle); }
 .otter-pet .otter-pet-belly { fill: var(--otter-pet-belly); }
-.otter-pet .otter-pet-stone { fill: var(--otter-pet-stone); }
+.otter-pet .otter-pet-stone { fill: var(--otter-pet-stone); transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.6, 1), fill 0.35s; }
 .otter-pet .otter-pet-whiskers { stroke: var(--otter-pet-fur-dark); }
 .otter-pet .otter-pet-cheek { fill: #f08b7a; opacity: 0.4; }
+.otter-pet .otter-pet-scarf { fill: var(--otter-pet-group); }
+.otter-pet .otter-pet-drop { fill: var(--otter-pet-drop); }
+.otter-pet .otter-pet-alert { fill: var(--otter-pet-alert); }
+.otter-pet .otter-pet-sparkle { fill: var(--otter-pet-gold); }
+.otter-pet .otter-pet-waves { fill: var(--otter-pet-water); stroke: #bfe6ff; stroke-width: 2; stroke-opacity: 0.6; }
+.otter-pet .otter-pet-waves-back { opacity: 0.35; }
+.otter-pet .otter-pet-waves-front { opacity: 0.6; }
+.otter-pet .otter-pet-laptop-lid { fill: var(--otter-pet-laptop); stroke: var(--otter-pet-laptop-dark); stroke-width: 2; }
+.otter-pet .otter-pet-laptop-logo { fill: #eef1f3; }
+.otter-pet .otter-pet-laptop-base { fill: var(--otter-pet-laptop-dark); }
 .otter-pet .otter-pet-body { transform-box: view-box; transform-origin: 120px 240px; }
+.otter-pet .otter-pet-ear { transition: transform 0.4s; }
 .otter-pet .otter-pet-paw,
 .otter-pet .otter-pet-mouth,
+.otter-pet .otter-pet-stone,
+.otter-pet .otter-pet-drop,
+.otter-pet .otter-pet-alert,
+.otter-pet .otter-pet-sparkle,
+.otter-pet .otter-pet-bit,
 .otter-pet .otter-pet-eye > circle:first-child { transform-box: fill-box; transform-origin: center; }
+.otter-pet .otter-pet-paw { transition: transform 0.3s; }
 
-/* Faces: one at a time. */
+/* What shows: one face at a time, and each state's props. */
 .otter-pet .otter-pet-eyes-happy,
 .otter-pet .otter-pet-eyes-closed,
 .otter-pet .otter-pet-brows-sad,
 .otter-pet .otter-pet-brows-worried,
 .otter-pet .otter-pet-cheek,
 .otter-pet .otter-pet-mouth,
-.otter-pet .otter-pet-z { display: none; }
-.otter-pet[data-mood='happy'] .otter-pet-eyes-happy,
-.otter-pet[data-mood='happy'] .otter-pet-cheek { display: inline; }
-.otter-pet[data-mood='happy'] .otter-pet-eyes-open { display: none; }
-.otter-pet[data-mood='sad'] .otter-pet-brows-sad,
-.otter-pet[data-mood='worried'] .otter-pet-brows-worried { display: inline; }
-.otter-pet[data-activity='asleep'][data-mood='neutral'] .otter-pet-eyes-open { display: none; }
-.otter-pet[data-activity='asleep'][data-mood='neutral'] .otter-pet-eyes-closed,
-.otter-pet[data-activity='asleep'][data-mood='neutral'] .otter-pet-z { display: inline; }
-.otter-pet[data-talking='true'] .otter-pet-smile { display: none; }
-.otter-pet[data-talking='true'] .otter-pet-mouth { display: inline; animation: otter-pet-talk 0.24s ease-in-out infinite alternate; }
-
-/* Moving. */
+.otter-pet .otter-pet-z,
+.otter-pet .otter-pet-scarf,
+.otter-pet .otter-pet-sweat,
+.otter-pet .otter-pet-tear,
+.otter-pet .otter-pet-laptop,
+.otter-pet .otter-pet-alert,
+.otter-pet .otter-pet-sparkles,
+.otter-pet .otter-pet-water,
+.otter-pet .otter-pet-confetti { display: none; }
+.otter-pet-raft .otter-pet-scarf { display: inline; }
+.otter-pet-one[data-mood='happy'] .otter-pet-eyes-happy,
+.otter-pet-one[data-mood='happy'] .otter-pet-cheek { display: inline; }
+.otter-pet-one[data-mood='happy'] .otter-pet-eyes-open { display: none; }
+.otter-pet-one[data-mood='sad'] .otter-pet-brows-sad,
+.otter-pet-one[data-mood='worried'] .otter-pet-brows-worried { display: inline; }
+.otter-pet-one[data-talking='true'] .otter-pet-smile { display: none; }
+.otter-pet-one[data-talking='true'] .otter-pet-mouth { display: inline; animation: otter-pet-talk 0.24s ease-in-out infinite alternate; }
 .otter-pet .otter-pet-eye > circle:first-child { animation: otter-pet-blink 4.5s infinite; }
-.otter-pet[data-activity='busy'] .otter-pet-paw-l { animation: otter-pet-tap 0.5s ease-in-out infinite; }
-.otter-pet[data-activity='busy'] .otter-pet-paw-r { animation: otter-pet-tap 0.5s ease-in-out 0.25s infinite; }
-.otter-pet[data-activity='waiting'] .otter-pet-body { animation: otter-pet-look 3s ease-in-out infinite; }
-.otter-pet[data-activity='needs'] .otter-pet-body { animation: otter-pet-hop 2.4s ease-in-out infinite; }
-.otter-pet[data-activity='asleep'] .otter-pet-body { animation: otter-pet-breathe 4s ease-in-out infinite; }
-.otter-pet[data-mood='happy'] .otter-pet-body { animation: otter-pet-joy 0.6s ease-out 2; }
-.otter-pet-wave .otter-pet-body { animation: otter-pet-joy 0.5s ease-out 1; }
+
+/* Idle: it breathes. */
+.otter-pet-one[data-activity='idle'] .otter-pet-body { animation: otter-pet-breathe 5s ease-in-out infinite; }
+
+/* Working: it types on a laptop, its stone put down, looking at the screen; after 10 minutes it sweats. */
+.otter-pet-one[data-activity='busy'][data-cheer='none'] .otter-pet-laptop { display: inline; }
+.otter-pet-one[data-activity='busy'][data-cheer='none'] .otter-pet-stone { display: none; }
+.otter-pet-one[data-activity='busy'][data-cheer='none'] .otter-pet-paw { transform: translateY(6px); }
+.otter-pet-one[data-activity='busy'][data-cheer='none'] .otter-pet-paw-l { animation: otter-pet-type 0.36s ease-in-out infinite; }
+.otter-pet-one[data-activity='busy'][data-cheer='none'] .otter-pet-paw-r { animation: otter-pet-type 0.36s ease-in-out 0.18s infinite; }
+.otter-pet-one[data-activity='busy'] .otter-pet-eyes-open { transform: translateY(3px); }
+.otter-pet-one[data-activity='busy'][data-long='true'] .otter-pet-sweat { display: inline; animation: otter-pet-drip 2.4s ease-in infinite; }
+
+/* Waiting on its own background work: it juggles its stone, and its eyes follow it. */
+.otter-pet-one[data-activity='waiting'][data-cheer='none'] .otter-pet-stone { animation: otter-pet-toss 1.6s infinite; }
+.otter-pet-one[data-activity='waiting'][data-cheer='none'] .otter-pet-paw { animation: otter-pet-catch 1.6s ease-in-out infinite; }
+.otter-pet-one[data-activity='waiting'][data-cheer='none'] .otter-pet-eyes-open { animation: otter-pet-follow 1.6s infinite; }
+
+/* It needs you: a "!", a hop, and a waving paw. */
+.otter-pet-one[data-activity='needs'] .otter-pet-body { animation: otter-pet-hop 2.4s ease-in-out infinite; }
+.otter-pet-one[data-activity='needs'] .otter-pet-alert { display: inline; animation: otter-pet-pulse 1.2s ease-in-out infinite; }
+.otter-pet-one[data-activity='needs'][data-cheer='none'] .otter-pet-paw-r {
+  transform: translate(58px, -92px);
+  transform-origin: 50% 100%;
+  animation: otter-pet-wave 0.9s ease-in-out infinite;
+}
+
+/* One failed: its ears droop and a tear falls, until you look at it. */
+.otter-pet-one[data-activity='failed'] .otter-pet-ear-l { transform: translate(-7px, 16px); }
+.otter-pet-one[data-activity='failed'] .otter-pet-ear-r { transform: translate(7px, 16px); }
+.otter-pet-one[data-activity='failed'] .otter-pet-body { animation: otter-pet-sigh 4s ease-in-out infinite; }
+.otter-pet-one[data-activity='failed'][data-mood='sad'] .otter-pet-tear { display: inline; animation: otter-pet-tear 2.8s ease-in infinite; }
+
+/* Asleep: it floats on its back, eyes closed, z's rising. */
+.otter-pet-one[data-activity='asleep'] .otter-pet-body {
+  transform-origin: 120px 168px;
+  transform: rotate(-80deg) scale(0.84);
+  animation: otter-pet-float 4.5s ease-in-out infinite;
+}
+.otter-pet-one[data-activity='asleep'] .otter-pet-water { display: inline; }
+.otter-pet-one[data-activity='asleep'] .otter-pet-waves-front { animation: otter-pet-drift 3s linear infinite; }
+.otter-pet-one[data-activity='asleep'] .otter-pet-waves-back { animation: otter-pet-drift 4.5s linear infinite reverse; }
+.otter-pet-one[data-activity='asleep'][data-mood='neutral'] .otter-pet-eyes-open { display: none; }
+.otter-pet-one[data-activity='asleep'][data-mood='neutral'] .otter-pet-eyes-closed,
+.otter-pet-one[data-activity='asleep'][data-mood='neutral'] .otter-pet-z { display: inline; }
 .otter-pet .otter-pet-z { fill: var(--muted); font: 700 22px system-ui, sans-serif; animation: otter-pet-z 3s ease-in-out infinite; }
 .otter-pet .otter-pet-z1 { animation-delay: 1s; }
 .otter-pet .otter-pet-z2 { animation-delay: 2s; }
 
+/* A good finish: a hop, its stone held up like a trophy, golden and sparkling; confetti when the tests pass. */
+.otter-pet-one[data-mood='happy'] .otter-pet-body { animation: otter-pet-joy 0.6s ease-out 2; }
+.otter-pet-one:not([data-cheer='none']) .otter-pet-stone { fill: var(--otter-pet-gold); transform: translateY(-160px) scale(1.15); }
+.otter-pet-one:not([data-cheer='none']) .otter-pet-paw { transform: translateY(-14px); }
+.otter-pet-one:not([data-cheer='none']) .otter-pet-sparkles { display: inline; }
+.otter-pet-one:not([data-cheer='none']) .otter-pet-sparkle { animation: otter-pet-twinkle 0.9s ease-in-out infinite; }
+.otter-pet-one:not([data-cheer='none']) .otter-pet-sparkle:nth-child(2) { animation-delay: 0.3s; }
+.otter-pet-one:not([data-cheer='none']) .otter-pet-sparkle:nth-child(3) { animation-delay: 0.6s; }
+.otter-pet-one[data-cheer='confetti'] .otter-pet-confetti { display: inline; }
+.otter-pet-one[data-cheer='confetti'] .otter-pet-bit { animation: otter-pet-fall var(--t, 2s) ease-in var(--d, 0s) 2 both; }
+
+/* A raft floats together, each otter a little out of step. */
+.otter-pet-raft .otter-pet-one { animation: otter-pet-bob 3.2s ease-in-out infinite; }
+.otter-pet-raft .otter-pet-one:nth-child(even) { animation-delay: -1.6s; }
+
 @keyframes otter-pet-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
 @keyframes otter-pet-talk { from { transform: scaleY(0.15); } to { transform: scaleY(1); } }
-@keyframes otter-pet-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
-@keyframes otter-pet-look { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-5deg); } 70% { transform: rotate(5deg); } }
+@keyframes otter-pet-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02, 0.985); } }
+@keyframes otter-pet-type { 0%, 100% { transform: translateY(6px); } 50% { transform: translateY(-1px); } }
+@keyframes otter-pet-drip { 0% { transform: translateY(0); opacity: 0; } 20%, 70% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
+@keyframes otter-pet-toss {
+  0%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.25, 0.6, 0.45, 1); }
+  50% { transform: translateY(-150px); animation-timing-function: cubic-bezier(0.55, 0, 0.75, 0.4); }
+}
+@keyframes otter-pet-catch { 0%, 100% { transform: translateY(3px); } 15%, 85% { transform: translateY(-6px); } 50% { transform: translateY(0); } }
+@keyframes otter-pet-follow { 0%, 100% { transform: translateY(1px); } 50% { transform: translateY(-4px); } }
 @keyframes otter-pet-hop { 0%, 70%, 100% { transform: translateY(0); } 78% { transform: translateY(-12px); } 86% { transform: translateY(0); } 92% { transform: translateY(-6px); } }
-@keyframes otter-pet-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025, 0.985); } }
-@keyframes otter-pet-joy { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px) rotate(-3deg); } }
+@keyframes otter-pet-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+@keyframes otter-pet-wave { 0%, 100% { transform: translate(58px, -92px) rotate(-28deg); } 50% { transform: translate(58px, -92px) rotate(28deg); } }
+@keyframes otter-pet-sigh { 0%, 100% { transform: translateY(2px) scale(1, 0.98); } 50% { transform: translateY(4px) scale(1, 0.96); } }
+@keyframes otter-pet-tear { 0% { transform: translateY(0); opacity: 0; } 15%, 75% { opacity: 1; } 100% { transform: translateY(26px); opacity: 0; } }
+@keyframes otter-pet-float { 0%, 100% { transform: translateY(0) rotate(-80deg) scale(0.84); } 50% { transform: translateY(4px) rotate(-77deg) scale(0.84); } }
+@keyframes otter-pet-drift { from { transform: translateX(0); } to { transform: translateX(-40px); } }
 @keyframes otter-pet-z { 0% { opacity: 0; transform: translateY(6px); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+@keyframes otter-pet-joy { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px) rotate(-3deg); } }
+@keyframes otter-pet-twinkle { 0%, 100% { opacity: 0.35; transform: scale(0.75); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes otter-pet-fall { from { transform: translate(0, 0) rotate(0deg); opacity: 1; } to { transform: translate(var(--x, 0px), 270px) rotate(540deg); opacity: 0.2; } }
+@keyframes otter-pet-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
-/* The bubble: above the otter, or below it near the top of the window; it leans in from the sides. */
+/* The bubble: above the otter that speaks, or below it near the top of the window; it leans in from the sides. */
 .otter-pet-bubble {
   position: absolute;
   bottom: calc(100% + 10px);
-  left: 50%;
+  left: var(--otter-pet-anchor);
   width: max-content;
   max-width: min(280px, calc(100vw - 32px));
   transform: translateX(-50%);
@@ -119,9 +219,9 @@
 }
 .otter-pet-below .otter-pet-bubble { top: calc(100% + 10px); bottom: auto; }
 .otter-pet-below .otter-pet-bubble::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--line-strong); }
-.otter-pet-lean-left .otter-pet-bubble { left: auto; right: 0; transform: none; }
+.otter-pet-lean-left .otter-pet-bubble { left: auto; right: calc(100% - var(--otter-pet-anchor) - var(--otter-pet-size) / 2); transform: none; }
 .otter-pet-lean-left .otter-pet-bubble::after { left: auto; right: calc(var(--otter-pet-size) / 2 - 7px); margin-left: 0; }
-.otter-pet-lean-right .otter-pet-bubble { left: 0; transform: none; }
+.otter-pet-lean-right .otter-pet-bubble { left: calc(var(--otter-pet-anchor) - var(--otter-pet-size) / 2); transform: none; }
 .otter-pet-lean-right .otter-pet-bubble::after { left: calc(var(--otter-pet-size) / 2); }
 .otter-pet-who {
   display: flex;
@@ -136,6 +236,20 @@
 .otter-pet-word { border-radius: 3px; transition: background-color 0.08s, color 0.08s; }
 .otter-pet-word:not(.otter-pet-said) { color: var(--muted); }
 .otter-pet-word.otter-pet-on { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.otter-pet-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 6px; color: var(--muted); font-size: 12px; }
+.otter-pet-extra[hidden] { display: none; }
+.otter-pet-act {
+  padding: 2px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.otter-pet-act[hidden] { display: none; }
+.otter-pet-act:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
 .otter-pet-close {
   position: absolute;
   top: 3px;
@@ -153,8 +267,61 @@
 }
 .otter-pet-close:hover { background: var(--hover); color: var(--text); }
 
+/* The menu: right-click, or hold. */
+.otter-pet-menu {
+  position: fixed;
+  z-index: 16;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: 0 10px 28px var(--shadow);
+  font-size: 13px;
+}
+.otter-pet-menu[hidden] { display: none; }
+.otter-pet-item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.otter-pet-item:hover,
+.otter-pet-item:focus-visible,
+.otter-pet-chip:hover,
+.otter-pet-chip:focus-visible { background: var(--hover); outline: none; }
+.otter-pet-item:disabled { color: var(--muted); background: transparent; cursor: default; }
+.otter-pet-sep { height: 1px; margin: 5px 6px; background: var(--line); }
+.otter-pet-choice { display: flex; align-items: center; gap: 5px; padding: 4px 6px 4px 10px; }
+.otter-pet-choice-label { flex: 1; color: var(--muted); font-size: 12px; }
+.otter-pet-chip {
+  padding: 3px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.otter-pet-chip[aria-checked='true'] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+@media (pointer: coarse) {
+  .otter-pet-item { padding: 10px 12px; }
+  .otter-pet-chip { padding: 6px 12px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .otter-pet *,
+  .otter-pet-one,
   .otter-pet-otter { animation: none !important; transition: none !important; }
-  .otter-pet[data-talking='true'] .otter-pet-mouth { transform: scaleY(0.6); }
+  .otter-pet-one[data-talking='true'] .otter-pet-mouth { transform: scaleY(0.6); }
+  .otter-pet-one[data-cheer='confetti'] .otter-pet-confetti { display: none; }
 }
