@@ -9,13 +9,17 @@ resized.
 
 | When | The otter |
 | --- | --- |
-| A terminal needs you (a permission, trusting a folder or its hooks) | A "!" over its head, worried brows; it hops and waves |
-| One failed (its last reply reads as a failure) and you haven't looked at it yet | Sad brows, drooping ears, a tear |
-| One works | Types on a little laptop; after 10 minutes of it, it sweats |
+| A terminal needs you (a permission, trusting a folder or its hooks) | A "!" pops up over its head, worried brows; it hops and waves |
+| One failed (its last reply reads as a failure) and you haven't looked at it yet | Sad brows, drooping ears, a tear and a rain cloud, which drifts off once you look |
+| One works | Its laptop slides in and opens, and it types behind it; after 10 minutes of it, it sweats. When the work ends it closes the lid |
 | One waits on its own background work (a dev server, a subagent) | Tosses its stone up beside its head and catches it, its eyes following it; a pup rides on its belly for each task, two at most |
-| Nothing going on | Breathes and blinks |
-| No terminal has worked for a while (15 minutes; change it, or turn it off, in Settings) | Floats asleep on its back, z's rising (a cat sleeps on a cushion) |
+| Nothing going on | Breathes, blinks, glances around; at night it yawns now and then |
+| No terminal has worked for a while (15 minutes; change it, or turn it off, in Settings) | Lies back to float asleep, z's rising (a cat sleeps on a cushion); at night in a nightcap. Woken, it stretches and yawns |
 | One just finished well | Happy eyes and a hop, its stone held up golden beside its head; confetti when the tests pass or something was merged or shipped |
+
+**Drag it** and it hangs from where you hold it, swinging behind the way you pull and kicking its paws; put down, it
+lands with a splash (a cat, in a puff of dust). **Stroke it** with the mouse and it closes its eyes, pleased, as hearts
+rise; a cat purrs. Night is 22:00 to 6:00, on the device's clock.
 
 **It can be another animal**: an otter (the default), a cat, a penguin or a beaver, each with every pose; each device
 picks its own in the menu. **It wears the hat of the agent it's showing**: orange for Claude, slate for Codex. The
@@ -59,7 +63,7 @@ doing, and the bubble points at the one that speaks. Up to six otters; more grou
 | Keep each bubble at least | 8 s by default; a long line stays as long as it takes to read |
 | Otters | One for every terminal (the default), or one per group, in a raft. Each device can pick its own in the menu |
 | Character | An otter (the default), a cat, a penguin or a beaver. Each device can pick its own in the menu |
-| Put on the agent's hat | On by default: orange for Claude, slate for Codex |
+| Put on hats | On by default: the agent's (orange for Claude, slate for Codex), and a nightcap to sleep in at night |
 | Size | Small, medium or large. Each device can pick its own in the menu |
 | Falls asleep when no terminal has worked for | 15 min by default; empty to stay awake |
 | Tell me when a terminal's context is nearly full | On by default |
@@ -71,7 +75,8 @@ doing, and the bubble points at the one that speaks. Up to six otters; more grou
 It asks for one permission, **type**, only for the Compact button: Otterm's `command()` types `/compact` only into an
 empty input box while Claude waits at its prompt, and presses Enter only once the box shows exactly that. Everything
 else reads what every plugin may read: the terminals' states and context, the first line of Claude's last reply, and
-the plan's usage. For the break it notes when you last pressed a key or clicked on the page, never which key.
+the plan's usage. For the break it notes when you last pressed a key or clicked on the page, never which key; for
+stroking, only how the mouse moves over the otter itself.
 
 ## How it floats, and its voice
 

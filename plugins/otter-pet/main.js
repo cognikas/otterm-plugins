@@ -38,6 +38,20 @@ const BREAK_GAP_MS = 10 * 60_000;
 const MAX_OTTERS = 6;
 /** How much each otter of a raft overlaps the one before it, as a share of its width. */
 const OVERLAP = 0.18;
+/** A gesture between two states (it wakes up and stretches, a rain cloud drifts off) lasts this long. */
+const MOMENT_MS = 1600;
+/** The bump and splash when it's put down after a drag. */
+const LAND_MS = 700;
+/** Its widest swing while it's dragged, in degrees, and how far it swings for each px/ms it's pulled at. */
+const SWING_MAX = 16;
+const SWING_GAIN = 10;
+/**
+ * Stroking it with the mouse: this far over it, going back and forth (two turns, each after at least PET_RUN_PX one
+ * way, so passing over it on the way somewhere isn't a stroke), and how long it stays pleased once the hand stops.
+ */
+const PET_PX = 90;
+const PET_RUN_PX = 12;
+const PET_END_MS = 900;
 /** Notices in the last reply that aren't Claude's answer: the otter keeps quiet about them. */
 const NOT_AN_ANSWER =
   /^(you['’]ve (hit|reached) your|claude (ai )?usage limit|credit balance is too low|api error|request timed out|\[?request interrupted|interrupted by user|session limit reached)/i;
@@ -274,6 +288,12 @@ export function nextMorning(now) {
   return at.getTime();
 }
 
+/** Night, from 22:00 to 6:00: it yawns now and then, and sleeps in a nightcap. @param {Date} now */
+export function isNight(now) {
+  const hour = now.getHours();
+  return hour >= 22 || hour < 6;
+}
+
 /**
  * An SVG element; attributes as strings, children appended.
  * @param {string} tag
@@ -370,6 +390,11 @@ function drawOtter(kind = 'otter') {
     const k = r * 0.3;
     return svg('path', { class: 'otter-pet-sparkle', d: `M${x} ${y - r}L${x + k} ${y - k}L${x + r} ${y}L${x + k} ${y + k}L${x} ${y + r}L${x - k} ${y + k}L${x - r} ${y}L${x - k} ${y - k}Z` });
   };
+  const heart = (/** @type {number} */ x, /** @type {number} */ y, /** @type {number} */ s) =>
+    svg('path', {
+      class: 'otter-pet-heart',
+      d: `M${x} ${y + s * 0.9}C${x - s * 1.6} ${y - s * 0.1} ${x - s * 0.7} ${y - s * 1.3} ${x} ${y - s * 0.45}C${x + s * 0.7} ${y - s * 1.3} ${x + s * 1.6} ${y - s * 0.1} ${x} ${y + s * 0.9}Z`,
+    });
   const stroke = { fill: 'none', stroke: '#1d1410', 'stroke-width': 4.5, 'stroke-linecap': 'round' };
   const brow = { stroke: '#1d1410', 'stroke-width': 4, 'stroke-linecap': 'round' };
   // A pup rides on the belly while background work runs: a small head of the same animal, eyes shut.
@@ -444,6 +469,14 @@ function drawOtter(kind = 'otter') {
         svg('rect', { class: 'otter-pet-hat-brim', x: 66, y: 56, width: 108, height: 15, rx: 7.5 }),
         svg('circle', { class: 'otter-pet-hat-ball', cx: 120, cy: 30, r: 9 }),
       ),
+      // At night it sleeps in a nightcap, its tip flopped over to the side.
+      svg(
+        'g',
+        { class: 'otter-pet-nightcap' },
+        svg('path', { class: 'otter-pet-nightcap-cap', d: 'M72 66 C74 22 124 2 168 22 C194 34 208 58 206 84 C196 64 186 56 168 54 L168 66 Z' }),
+        svg('rect', { class: 'otter-pet-nightcap-band', x: 66, y: 56, width: 108, height: 15, rx: 7.5 }),
+        svg('circle', { class: 'otter-pet-nightcap-ball', cx: 206, cy: 88, r: 9 }),
+      ),
       svg('ellipse', { class: 'otter-pet-cheek', cx: 78, cy: 138, rx: 11, ry: 7 }),
       svg('ellipse', { class: 'otter-pet-cheek', cx: 162, cy: 138, rx: 11, ry: 7 }),
       // The screen's light on its face while it types.
@@ -483,8 +516,13 @@ function drawOtter(kind = 'otter') {
       svg(
         'g',
         { class: 'otter-pet-laptop' },
-        svg('rect', { class: 'otter-pet-laptop-lid', x: 80, y: 164, width: 80, height: 38, rx: 6 }),
-        svg('circle', { class: 'otter-pet-laptop-logo', cx: 120, cy: 183, r: 5 }),
+        // The lid opens once the laptop is in front of it, and closes before it goes.
+        svg(
+          'g',
+          { class: 'otter-pet-lid' },
+          svg('rect', { class: 'otter-pet-laptop-lid', x: 80, y: 164, width: 80, height: 38, rx: 6 }),
+          svg('circle', { class: 'otter-pet-laptop-logo', cx: 120, cy: 183, r: 5 }),
+        ),
         svg('path', { class: 'otter-pet-laptop-base', d: 'M70 202 H170 L162 213 H78 Z' }),
       ),
       svg('g', { class: 'otter-pet-code' }, glyph('</>', 82, 0), glyph('{ }', 158, 1), glyph(';', 82, 2)),
@@ -515,6 +553,19 @@ function drawOtter(kind = 'otter') {
     z(1),
     z(2),
     svg('g', { class: 'otter-pet-confetti' }, ...bits),
+    // Stroked with the mouse, hearts rise beside its head.
+    svg('g', { class: 'otter-pet-hearts' }, heart(50, 62, 10), heart(30, 40, 7)),
+    // Put down after a drag: a splash where it lands (a puff of dust under a cat).
+    svg(
+      'g',
+      { class: 'otter-pet-splash' },
+      svg('ellipse', { class: 'otter-pet-ripple', cx: 120, cy: 252, rx: 80, ry: 12 }),
+      svg('ellipse', { class: 'otter-pet-ripple otter-pet-ripple1', cx: 120, cy: 252, rx: 104, ry: 15 }),
+      drop('splash0', 40, 228),
+      drop('splash1', 66, 216),
+      drop('splash2', 174, 216),
+      drop('splash3', 200, 228),
+    ),
   );
 }
 
@@ -546,7 +597,7 @@ function drawOtter(kind = 'otter') {
 /**
  * One otter of the raft (or the only one): which groups it stands for, and its own passing mood.
  * @typedef {{ key: string, groups: Set<string | null> | null, group: string | null, name: string }} Spec
- * @typedef {Spec & { el: HTMLElement, mood: Mood, cheer: Cheer, moodUntil: number }} Otter
+ * @typedef {Spec & { el: HTMLElement, mood: Mood, cheer: Cheer, moodUntil: number, moment: ReturnType<typeof setTimeout> | null }} Otter
  */
 
 /** @param {import('otterm-plugin').Otterm} otterm */
@@ -599,9 +650,12 @@ export function activate(otterm) {
       'data-long': 'false',
       'data-talking': 'false',
       'data-species': drawn,
+      'data-moment': 'none',
+      'data-petted': 'false',
+      'data-night': 'false',
     });
     el.append(drawOtter(drawn));
-    return { ...w, el, mood: 'neutral', cheer: 'none', moodUntil: 0 };
+    return { ...w, el, mood: 'neutral', cheer: 'none', moodUntil: 0, moment: null };
   };
   /** Draws every otter again as the animal picked, when it changed. */
   const redraw = () => {
@@ -641,9 +695,14 @@ export function activate(otterm) {
       o.name = w.name;
       return o;
     });
+    for (const o of byKey.values()) if (!otters.includes(o) && o.moment) clearTimeout(o.moment);
     for (const o of otters) o.el.style.setProperty('--otter-pet-group', otterm.ui.groupColor(o.group));
     if (!same) {
-      row.replaceChildren(...otters.map((o) => o.el));
+      // Only what changed moves: an otter put back in the page would start its pose again (lie down, pop its "!").
+      for (const old of [...row.children]) if (!otters.some((o) => o.el === old)) old.remove();
+      otters.forEach((o, i) => {
+        if (row.children[i] !== o.el) row.insertBefore(o.el, row.children[i] ?? null);
+      });
       place();
     }
   };
@@ -787,9 +846,20 @@ export function activate(otterm) {
     [...list].sort((x, y) => y.stateSince - x.stateSince)[0] ??
     null;
 
+  /** A gesture on one otter between two states: 'wake' (it stretches and yawns), 'clear' (its rain cloud drifts off). @param {Otter} o @param {string} name */
+  const moment = (o, name) => {
+    if (o.moment) clearTimeout(o.moment);
+    o.el.dataset.moment = name;
+    o.moment = setTimeout(() => {
+      o.moment = null;
+      o.el.dataset.moment = 'none';
+    }, MOMENT_MS);
+  };
+
   const paint = () => {
     const now = Date.now();
     const raft = otters.length > 1;
+    const night = isNight(new Date(now));
     // Painted again when the soonest passing mood ends, on whichever otter.
     if (cheerTimer) clearTimeout(cheerTimer);
     cheerTimer = null;
@@ -799,12 +869,17 @@ export function activate(otterm) {
       const list = agents().filter(mine(o));
       const act = activityOf(list);
       const fresh = now < o.moodUntil;
+      const was = o.el.dataset.activity;
+      if (was === 'asleep' && act !== 'asleep') moment(o, 'wake');
+      // The cloud drifts off when the failure is over, not when something more urgent (a question) covers it.
+      else if (was === 'failed' && act !== 'failed' && !list.some((t) => failed.has(t.id))) moment(o, 'clear');
       o.el.dataset.activity = act;
+      o.el.dataset.night = String(night);
       o.el.dataset.mood = fresh ? o.mood : act === 'needs' ? 'worried' : act === 'failed' ? 'sad' : 'neutral';
       o.el.dataset.cheer = fresh ? o.cheer : 'none';
       o.el.dataset.long = String(act === 'busy' && list.some((t) => t.state === 'working' && now - t.stateSince >= SWEAT_MS));
       const lead = leadOf(list, act);
-      o.el.dataset.hat = otterm.config.get('hats') !== false && lead ? lead.kind : 'none';
+      o.el.dataset.hat = otterm.config.get('hats') === false ? 'none' : act === 'asleep' && night ? 'night' : lead ? lead.kind : 'none';
       const tasks = list.filter((t) => t.state === 'background').reduce((n, t) => n + backgroundCount(t.backgroundWork), 0);
       o.el.dataset.pups = String(act === 'waiting' ? Math.min(2, tasks) : 0);
       const summary = TEXT.status(counts(list, act === 'asleep'));
@@ -1071,17 +1146,84 @@ export function activate(otterm) {
     say({ key: 'break', kind: 'break', id: '', name: TEXT.pet, group: null, line: TEXT.pause(every), mood: 'happy', onShown: () => (streakFrom = Date.now()) });
   };
 
-  // ---- Pressing it: a click opens, a drag moves the raft, a long press or a right-click opens the menu.
-
-  /** @param {EventTarget | null} target */
+  /** The otter under the pointer. @param {EventTarget | null} target */
   const otterAt = (target) => {
     const el = target instanceof Element ? target.closest('.otter-pet-one') : null;
     return otters.find((o) => o.el === el) ?? null;
   };
   const speakerOtter = () => (current ? otterOf(current) : otters[0]);
 
-  /** @type {{ x: number, y: number, left: number, top: number, pointer: number, moved: boolean, long: boolean, otter: Otter | null, timer: ReturnType<typeof setTimeout> } | null} */
+  // ---- Stroking it with the mouse, without pressing: it closes its eyes, pleased, and hearts rise (a cat purrs).
+
+  /**
+   * The otter being stroked: how far the hand has gone over it, and its turns. Per axis (x, y): which way it last went
+   * and how far.
+   * @typedef {{ otter: Otter | null, dist: number, x: number, y: number, dirs: number[], runs: number[], turns: number }} Stroke
+   */
+  /** A new stroke, on an otter or on none. @param {Otter | null} [otter] @param {PointerEvent} [e] @returns {Stroke} */
+  const stroke = (otter = null, e) => ({ otter, dist: 0, x: e?.clientX ?? 0, y: e?.clientY ?? 0, dirs: [0, 0], runs: [0, 0], turns: 0 });
+  let pet = stroke();
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let petTimer = null;
+  const unpet = () => {
+    if (petTimer) clearTimeout(petTimer);
+    petTimer = null;
+    if (pet.otter) pet.otter.el.dataset.petted = 'false';
+    pet = stroke();
+  };
+  /** @param {PointerEvent} e */
+  const onHover = (e) => {
+    if (press || e.buttons || e.pointerType === 'touch') return;
+    const o = otterAt(e.target);
+    if (o !== pet.otter) {
+      unpet();
+      if (o) pet = stroke(o, e);
+      return;
+    }
+    if (!o) return;
+    const step = [e.clientX - pet.x, e.clientY - pet.y];
+    step.forEach((d, i) => {
+      const dir = Math.sign(d);
+      if (!dir) return;
+      if (dir !== pet.dirs[i]) {
+        if (pet.dirs[i] && pet.runs[i] >= PET_RUN_PX) pet.turns += 1;
+        pet.dirs[i] = dir;
+        pet.runs[i] = 0;
+      }
+      pet.runs[i] += Math.abs(d);
+    });
+    pet.dist += Math.hypot(step[0], step[1]);
+    pet.x = e.clientX;
+    pet.y = e.clientY;
+    if (pet.dist >= PET_PX && pet.turns >= 2) o.el.dataset.petted = 'true';
+    if (petTimer) clearTimeout(petTimer);
+    petTimer = setTimeout(unpet, PET_END_MS);
+  };
+
+  // ---- Pressing it: a click opens, a drag moves the raft, a long press or a right-click opens the menu.
+
+  /** @type {{ x: number, y: number, left: number, top: number, pointer: number, moved: boolean, long: boolean, otter: Otter | null, timer: ReturnType<typeof setTimeout>, lastX: number, lastT: number } | null} */
   let press = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let swingTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let landTimer = null;
+  /** It hangs from where you hold it: tilted by how fast it's pulled sideways, back to straight when the hand stops. @param {number} deg */
+  const swing = (deg) => {
+    if (swingTimer) clearTimeout(swingTimer);
+    swingTimer = deg ? setTimeout(() => swing(0), 120) : null;
+    root.style.setProperty('--otter-pet-swing', `${deg.toFixed(1)}deg`);
+  };
+  /** Put down: a bump, and a splash where it lands. */
+  const land = () => {
+    swing(0);
+    if (landTimer) clearTimeout(landTimer);
+    root.classList.add('otter-pet-landed');
+    landTimer = setTimeout(() => {
+      landTimer = null;
+      root.classList.remove('otter-pet-landed');
+    }, LAND_MS);
+  };
   /** @param {PointerEvent} e */
   const onDown = (e) => {
     if (e.button !== 0 || (e.target instanceof Element && e.target.closest('button'))) return;
@@ -1092,7 +1234,8 @@ export function activate(otterm) {
       press.otter?.el.classList.remove('otter-pet-pressed');
       openMenu(press.x, press.y, press.otter ?? speakerOtter());
     }, LONG_PRESS_MS);
-    press = { x: e.clientX, y: e.clientY, left: root.offsetLeft, top: root.offsetTop, pointer: e.pointerId, moved: false, long: false, otter, timer };
+    press = { x: e.clientX, y: e.clientY, left: root.offsetLeft, top: root.offsetTop, pointer: e.pointerId, moved: false, long: false, otter, timer, lastX: e.clientX, lastT: e.timeStamp };
+    unpet();
     otter?.el.classList.add('otter-pet-pressed');
     try {
       root.setPointerCapture(e.pointerId);
@@ -1110,8 +1253,14 @@ export function activate(otterm) {
       clearTimeout(press.timer);
       press.otter?.el.classList.remove('otter-pet-pressed');
       root.classList.add('otter-pet-dragging');
+      // The raft hangs from where you hold it.
+      root.style.setProperty('--otter-pet-hold', `${Math.round(press.x - row.getBoundingClientRect().left)}px`);
     }
     press.moved = true;
+    const speed = (e.clientX - press.lastX) / Math.max(1, e.timeStamp - press.lastT);
+    press.lastX = e.clientX;
+    press.lastT = e.timeStamp;
+    swing(Math.max(-SWING_MAX, Math.min(SWING_MAX, speed * SWING_GAIN)));
     const r = room();
     at = { fx: r.w ? (press.left + dx - MARGIN) / r.w : 1, fy: r.h ? (press.top + dy - MARGIN) / r.h : 1 };
     place();
@@ -1127,6 +1276,9 @@ export function activate(otterm) {
     if (moved) {
       at = { fx: Math.min(1, Math.max(0, at.fx)), fy: Math.min(1, Math.max(0, at.fy)) };
       otterm.store.set('at', at);
+      // Put down, it splashes; a drag the browser took over (a system gesture) only stops swinging.
+      if (e.type === 'pointerup') land();
+      else swing(0);
     } else if (!long && e.type === 'pointerup') {
       openSubject(otter ?? speakerOtter());
     }
@@ -1135,6 +1287,8 @@ export function activate(otterm) {
   root.addEventListener('pointermove', onMove);
   root.addEventListener('pointerup', onUp);
   root.addEventListener('pointercancel', onUp);
+  root.addEventListener('pointermove', onHover);
+  root.addEventListener('pointerleave', unpet);
   root.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     if (press) {
@@ -1353,6 +1507,7 @@ export function activate(otterm) {
     clearInterval(tick);
     if (cheerTimer) clearTimeout(cheerTimer);
     if (press) clearTimeout(press.timer);
+    for (const t of [swingTimer, landTimer, petTimer, ...otters.map((o) => o.moment)]) if (t) clearTimeout(t);
     for (const off of offs) off();
     hideBubble();
     closeMenu(false);

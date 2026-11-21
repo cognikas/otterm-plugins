@@ -69,9 +69,9 @@
     {
       "key": "hats",
       "type": "boolean",
-      "label": "Put on the agent's hat",
+      "label": "Put on hats",
       "default": true,
-      "help": "Orange for Claude, slate for Codex: the agent of the terminal the otter is showing."
+      "help": "The agent's (orange for Claude, slate for Codex: the agent of the terminal the otter is showing), and a nightcap to sleep in at night."
     },
     {
       "key": "size",
